@@ -15,12 +15,7 @@ const BLOOM_MIN_RATIO = 0.12
 const BLOOM_MAX_RATIO = 0.34
 const BLOOM_OVERVIEW_MIN_RATIO = 0.06
 const BLOOM_OVERVIEW_MAX_RATIO = 0.18
-const FLOW_ANGLE_JITTER = 0.32
-const FLOW_BRANCH_TWIST = 0.18
-const FLOW_RADIAL_JITTER = 0.16
-const FLOW_TANGENTIAL_JITTER = 0.2
-const FLOW_RELAX_ITERS = 6
-const FLOW_ANCHOR_PULL = 0.08
+const LEAF_RING_RATIO = 0.55
 const WIND_BRANCH_AMPLITUDE = 6
 const WIND_LEAF_AMPLITUDE = 10
 const WIND_BLOOM_PULSE = 0.04
@@ -82,7 +77,7 @@ export function positionNodes(ctx: AppContext): void {
       base * maxRatio + maxLeafRadius * (isActive ? 0.6 : 0.2)
     )
 
-    const offsets = buildFlowOffsets(index, node.subs.length, minRadius, maxRadius, leafSizes, isActive)
+    const offsets = buildRadialOffsets(node.subs.length, minRadius, maxRadius, leafSizes, angle)
 
     node.subs.forEach((sub, subIndex) => {
       const offset = offsets[subIndex]
@@ -148,7 +143,7 @@ export function startWind(ctx: AppContext): void {
   windAnimationId = window.requestAnimationFrame(tick)
 }
 
-let debugHoverZone = true
+let debugHoverZone = false
 const HOVER_MIN_RADIUS_RATIO = 0.55
 const HOVER_MAX_RADIUS_RATIO = 1.35
 
@@ -165,9 +160,18 @@ function drawGuideLines(ctx: AppContext): void {
     return
   }
 
-  guideLayer.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`)
-  guideLayer.setAttribute('width', `${rect.width}`)
-  guideLayer.setAttribute('height', `${rect.height}`)
+  // Position guide layer to overlay the canvas
+  // Guide layer is sibling of canvas in map-panel, so position relative to parent
+  const parent = guideLayer.parentElement
+  const parentRect = parent?.getBoundingClientRect()
+  const offsetLeft = parentRect ? rect.left - parentRect.left : rect.left
+  const offsetTop = parentRect ? rect.top - parentRect.top : rect.top
+
+  guideLayer.style.left = `${offsetLeft}px`
+  guideLayer.style.top = `${offsetTop}px`
+  guideLayer.style.width = `${rect.width}px`
+  guideLayer.style.height = `${rect.height}px`
+
   guideLayer.replaceChildren()
 
   const viewMode = getViewMode()
@@ -175,13 +179,12 @@ function drawGuideLines(ctx: AppContext): void {
   const hoveredBranchIndex = getHoveredBranchIndex()
   const lineFragment = document.createDocumentFragment()
 
-  // Debug: draw hover trigger zone
+  // Debug: draw hover trigger zone (uses SVG overlay)
   if (debugHoverZone && viewMode === 'overview') {
     const centerX = rect.width / 2
     const centerY = rect.height / 2
 
     // Get ellipse radii from branches at cardinal positions
-    // Branch 0 is at top (-π/2), Branch 2 is at right (0)
     const branchTop = branches[0]
     const branchRight = branches[2]
     if (branchTop && branchRight) {
@@ -198,33 +201,40 @@ function drawGuideLines(ctx: AppContext): void {
       const maxRadiusX = ringRadiusX * HOVER_MAX_RADIUS_RATIO
       const maxRadiusY = ringRadiusY * HOVER_MAX_RADIUS_RATIO
 
-      // Draw the minimum radius ellipse (red dashed)
-      const debugEllipseMin = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
-      debugEllipseMin.setAttribute('cx', `${centerX}`)
-      debugEllipseMin.setAttribute('cy', `${centerY}`)
-      debugEllipseMin.setAttribute('rx', `${minRadiusX}`)
-      debugEllipseMin.setAttribute('ry', `${minRadiusY}`)
-      debugEllipseMin.setAttribute('fill', 'none')
-      debugEllipseMin.setAttribute('stroke', 'red')
-      debugEllipseMin.setAttribute('stroke-width', '2')
-      debugEllipseMin.setAttribute('stroke-dasharray', '8 4')
-      debugEllipseMin.setAttribute('opacity', '0.7')
-      lineFragment.append(debugEllipseMin)
+      // Create debug SVG overlay
+      const debugSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+      debugSvg.setAttribute('viewBox', `0 0 ${rect.width} ${rect.height}`)
+      debugSvg.setAttribute('width', `${rect.width}`)
+      debugSvg.setAttribute('height', `${rect.height}`)
+      debugSvg.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:100'
 
-      // Draw the maximum radius ellipse (red dashed)
-      const debugEllipseMax = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
-      debugEllipseMax.setAttribute('cx', `${centerX}`)
-      debugEllipseMax.setAttribute('cy', `${centerY}`)
-      debugEllipseMax.setAttribute('rx', `${maxRadiusX}`)
-      debugEllipseMax.setAttribute('ry', `${maxRadiusY}`)
-      debugEllipseMax.setAttribute('fill', 'none')
-      debugEllipseMax.setAttribute('stroke', 'red')
-      debugEllipseMax.setAttribute('stroke-width', '2')
-      debugEllipseMax.setAttribute('stroke-dasharray', '8 4')
-      debugEllipseMax.setAttribute('opacity', '0.7')
-      lineFragment.append(debugEllipseMax)
+      // Draw min radius ellipse
+      const ellipseMin = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
+      ellipseMin.setAttribute('cx', `${centerX}`)
+      ellipseMin.setAttribute('cy', `${centerY}`)
+      ellipseMin.setAttribute('rx', `${minRadiusX}`)
+      ellipseMin.setAttribute('ry', `${minRadiusY}`)
+      ellipseMin.setAttribute('fill', 'none')
+      ellipseMin.setAttribute('stroke', 'red')
+      ellipseMin.setAttribute('stroke-width', '2')
+      ellipseMin.setAttribute('stroke-dasharray', '8 4')
+      ellipseMin.setAttribute('opacity', '0.7')
+      debugSvg.append(ellipseMin)
 
-      // Get actual branch angles from their current positions
+      // Draw max radius ellipse
+      const ellipseMax = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse')
+      ellipseMax.setAttribute('cx', `${centerX}`)
+      ellipseMax.setAttribute('cy', `${centerY}`)
+      ellipseMax.setAttribute('rx', `${maxRadiusX}`)
+      ellipseMax.setAttribute('ry', `${maxRadiusY}`)
+      ellipseMax.setAttribute('fill', 'none')
+      ellipseMax.setAttribute('stroke', 'red')
+      ellipseMax.setAttribute('stroke-width', '2')
+      ellipseMax.setAttribute('stroke-dasharray', '8 4')
+      ellipseMax.setAttribute('opacity', '0.7')
+      debugSvg.append(ellipseMax)
+
+      // Get actual branch angles
       const branchAngles = branches.map((b) => {
         const bRect = b.main.getBoundingClientRect()
         const bx = bRect.left - rect.left + bRect.width / 2
@@ -232,34 +242,34 @@ function drawGuideLines(ctx: AppContext): void {
         return Math.atan2(by - centerY, bx - centerX)
       })
 
-      // Draw sector boundaries at midpoint between adjacent branches
+      // Draw sector boundaries
       for (let i = 0; i < branches.length; i++) {
         const nextIndex = (i + 1) % branches.length
         const angle1 = branchAngles[i]
         const angle2 = branchAngles[nextIndex]
 
-        // Find midpoint angle (handling wraparound)
         let diff = angle2 - angle1
         if (diff > Math.PI) diff -= Math.PI * 2
         if (diff < -Math.PI) diff += Math.PI * 2
         const midAngle = angle1 + diff / 2
 
-        // Points on ellipse at this angle
         const startX = centerX + Math.cos(midAngle) * minRadiusX
         const startY = centerY + Math.sin(midAngle) * minRadiusY
         const endX = centerX + Math.cos(midAngle) * maxRadiusX
         const endY = centerY + Math.sin(midAngle) * maxRadiusY
 
-        const debugLine = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-        debugLine.setAttribute('x1', `${startX}`)
-        debugLine.setAttribute('y1', `${startY}`)
-        debugLine.setAttribute('x2', `${endX}`)
-        debugLine.setAttribute('y2', `${endY}`)
-        debugLine.setAttribute('stroke', 'red')
-        debugLine.setAttribute('stroke-width', '1.5')
-        debugLine.setAttribute('opacity', '0.6')
-        lineFragment.append(debugLine)
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+        line.setAttribute('x1', `${startX}`)
+        line.setAttribute('y1', `${startY}`)
+        line.setAttribute('x2', `${endX}`)
+        line.setAttribute('y2', `${endY}`)
+        line.setAttribute('stroke', 'red')
+        line.setAttribute('stroke-width', '1.5')
+        line.setAttribute('opacity', '0.6')
+        debugSvg.append(line)
       }
+
+      lineFragment.append(debugSvg)
     }
   }
 
@@ -461,21 +471,30 @@ function appendLine(
   variant: 'branch' | 'leaf' | 'trunk',
   opacity?: number
 ): void {
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line')
-  line.setAttribute('x1', `${startX}`)
-  line.setAttribute('y1', `${startY}`)
-  line.setAttribute('x2', `${endX}`)
-  line.setAttribute('y2', `${endY}`)
-  line.classList.add('guide-line')
-  if (variant === 'leaf') {
-    line.classList.add('sub-line')
-  } else if (variant === 'trunk') {
-    line.classList.add('trunk-line')
+  // Guide layer is now outside canvas, positioned to overlay it
+  // Coordinates are viewport-relative to canvas, which matches guide layer
+  const dx = endX - startX
+  const dy = endY - startY
+  const distance = Math.hypot(dx, dy)
+  const charSpacing = variant === 'leaf' ? 8 : 12
+  const numChars = Math.max(1, Math.floor(distance / charSpacing))
+  const char = '.'
+
+  for (let i = 0; i < numChars; i++) {
+    const t = numChars > 1 ? i / (numChars - 1) : 0.5
+    const x = startX + dx * t
+    const y = startY + dy * t
+
+    const span = document.createElement('span')
+    span.className = `ascii-line ${variant}`
+    span.textContent = char
+    span.style.left = `${x}px`
+    span.style.top = `${y}px`
+    if (opacity !== undefined) {
+      span.style.opacity = `${opacity}`
+    }
+    fragment.append(span)
   }
-  if (opacity !== undefined) {
-    line.style.opacity = `${opacity}`
-  }
-  fragment.append(line)
 }
 
 function setBasePosition(element: HTMLElement, x: number, y: number): void {
@@ -507,58 +526,27 @@ function lerp(min: number, max: number, t: number): number {
   return min + (max - min) * t
 }
 
-function buildFlowOffsets(
-  branchIndex: number,
+function buildRadialOffsets(
   count: number,
   minRadius: number,
   maxRadius: number,
   leafSizes: number[],
-  allowReflow: boolean
+  branchAngle: number
 ): Array<{ x: number; y: number }> {
   if (!count) return []
 
-  const random = createSeededRandom(23017 + branchIndex * 911)
   const points: Array<{ x: number; y: number }> = []
-  const anchors: Array<{ x: number; y: number }> = []
   const radii = leafSizes.map((size) => size / 2)
   const angleStep = (Math.PI * 2) / count
-  const branchTwist = (random() - 0.5) * angleStep * FLOW_BRANCH_TWIST
-  const baseLeafRadius = LEAF_BASE_SIZE / 2
-  const maxLeafRadius = Math.max(baseLeafRadius, ...radii)
-  const safeRadius = allowReflow ? getSafeRadius(radii, angleStep) : 0
-  const resolvedMinRadius = allowReflow ? Math.max(minRadius, safeRadius) : minRadius
-  const resolvedMaxRadius = allowReflow
-    ? Math.max(maxRadius, resolvedMinRadius + maxLeafRadius * 1.6)
-    : maxRadius
+  const safeRadius = getSafeRadius(radii, angleStep)
+  const targetRadius = minRadius + (maxRadius - minRadius) * LEAF_RING_RATIO
+  const ringRadius = Math.max(targetRadius, safeRadius, minRadius)
 
   for (let i = 0; i < count; i += 1) {
-    const baseAngle = angleStep * i - Math.PI / 2
-    const angleJitter = (random() - 0.5) * angleStep * FLOW_ANGLE_JITTER
-    const angle = baseAngle + branchTwist + angleJitter
-
-    const radiusT = 0.45 + (random() - 0.5) * 0.4
-    const radiusBase = resolvedMinRadius + radiusT * (resolvedMaxRadius - resolvedMinRadius)
-    const radialJitter =
-      (random() - 0.5) * (resolvedMaxRadius - resolvedMinRadius) * FLOW_RADIAL_JITTER
-    const sizeBoost = (radii[i] - baseLeafRadius) * 1.1
-    const radius = clamp(
-      radiusBase + radialJitter + sizeBoost,
-      resolvedMinRadius,
-      resolvedMaxRadius
-    )
-    const tangential =
-      (random() - 0.5) * (resolvedMaxRadius - resolvedMinRadius) * FLOW_TANGENTIAL_JITTER
-
-    const tangentAngle = angle + Math.PI / 2
-    const x = Math.cos(angle) * radius + Math.cos(tangentAngle) * tangential
-    const y = Math.sin(angle) * radius * 0.92 + Math.sin(tangentAngle) * tangential * 0.7
-
+    const angle = angleStep * i + branchAngle
+    const x = Math.cos(angle) * ringRadius
+    const y = Math.sin(angle) * ringRadius
     points.push({ x, y })
-    anchors.push({ x, y })
-  }
-
-  if (allowReflow) {
-    relaxFlow(points, anchors, radii, resolvedMinRadius, resolvedMaxRadius)
   }
 
   return points
@@ -580,65 +568,6 @@ function getSafeRadius(radii: number[], angleStep: number): number {
   }
 
   return required
-}
-
-function relaxFlow(
-  points: Array<{ x: number; y: number }>,
-  anchors: Array<{ x: number; y: number }>,
-  radii: number[],
-  minRadius: number,
-  maxRadius: number
-): void {
-  if (!points.length) return
-
-  for (let iteration = 0; iteration < FLOW_RELAX_ITERS; iteration += 1) {
-    for (let i = 0; i < points.length; i += 1) {
-      for (let j = i + 1; j < points.length; j += 1) {
-        const dx = points[j].x - points[i].x
-        const dy = points[j].y - points[i].y
-        const distance = Math.hypot(dx, dy) || 0.001
-        const minDistance = radii[i] + radii[j] + LEAF_GAP
-
-        if (distance < minDistance) {
-          const push = (minDistance - distance) / distance
-          const offsetX = dx * push * 0.5
-          const offsetY = dy * push * 0.5
-          points[i].x -= offsetX
-          points[i].y -= offsetY
-          points[j].x += offsetX
-          points[j].y += offsetY
-        }
-      }
-    }
-
-    points.forEach((point, index) => {
-      const distance = Math.hypot(point.x, point.y) || 1
-      const minDistance = minRadius + radii[index] * 0.2
-      const maxDistance = maxRadius + radii[index] * 0.6
-
-      if (distance < minDistance) {
-        const scale = minDistance / distance
-        point.x *= scale
-        point.y *= scale
-      } else if (distance > maxDistance) {
-        const scale = maxDistance / distance
-        point.x *= scale
-        point.y *= scale
-      }
-
-      point.x = lerp(point.x, anchors[index].x, FLOW_ANCHOR_PULL)
-      point.y = lerp(point.y, anchors[index].y, FLOW_ANCHOR_PULL)
-    })
-  }
-}
-
-function createSeededRandom(seed: number): () => number {
-  let value = seed % 2147483647
-  if (value <= 0) value += 2147483646
-  return () => {
-    value = (value * 16807) % 2147483647
-    return (value - 1) / 2147483646
-  }
 }
 
 function clamp(value: number, min: number, max: number): number {

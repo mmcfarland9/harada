@@ -76,9 +76,9 @@ export function buildApp(
   const canvas = document.createElement('div')
   canvas.className = 'canvas'
 
-  const guideLayer = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  guideLayer.classList.add('guide-layer')
-  canvas.append(guideLayer)
+  // Guide layer is OUTSIDE canvas to avoid transform issues
+  const guideLayer = document.createElement('div')
+  guideLayer.className = 'guide-layer'
 
   // Trunk
   const center = document.createElement('button')
@@ -114,7 +114,12 @@ export function buildApp(
     main.dataset.defaultLabel = String(i + 1)
     main.dataset.placeholder = `Branch ${i + 1}`
     main.dataset.branchIndex = String(i)
+    main.dataset.branchStyle = '1'
     main.setAttribute('aria-label', `Branch ${i + 1}`)
+
+    const mainLabel = document.createElement('span')
+    mainLabel.className = 'circle-label'
+    main.append(mainLabel)
 
     initializeCircle(main, `Branch ${i + 1}`, circleLookup, onCircleClick)
     allCircles.push(main)
@@ -130,7 +135,7 @@ export function buildApp(
       sub.dataset.placeholder = `Leaf ${j + 1} for branch ${i + 1}`
       sub.dataset.branchIndex = String(i)
       sub.dataset.leafIndex = String(j)
-      sub.style.setProperty('--leaf-delay', `${getBloomDelay(i, j)}ms`)
+      sub.style.setProperty('--leaf-delay', `${getBloomDelay(j)}ms`)
       sub.setAttribute('aria-label', `Leaf ${j + 1} for branch ${i + 1}`)
 
       initializeCircle(sub, `Leaf ${j + 1} for branch ${i + 1}`, circleLookup, onCircleClick)
@@ -149,11 +154,11 @@ export function buildApp(
   debugLabel.className = 'debug-toggle'
   const debugCheckbox = document.createElement('input')
   debugCheckbox.type = 'checkbox'
-  debugCheckbox.checked = true
+  debugCheckbox.checked = false
   const debugText = document.createTextNode(' Show debug guide lines')
   debugLabel.append(debugCheckbox, debugText)
 
-  mapPanel.append(canvas, debugLabel)
+  mapPanel.append(canvas, guideLayer, debugLabel)
 
   // Side Panel
   const sidePanel = document.createElement('aside')
@@ -237,11 +242,11 @@ function initializeCircle(
   })
 }
 
-function getBloomDelay(branchIndex: number, leafIndex: number): number {
-  const seed = (branchIndex + 1) * 31 + (leafIndex + 1) * 17
-  const base = Math.sin(seed * 12.9898) * 43758.5453
-  const normalized = base - Math.floor(base)
-  return Math.round(60 + normalized * 220)
+function getBloomDelay(leafIndex: number): number {
+  const baseDelay = 60
+  const delayStep = 40
+  const distanceFromFront = Math.min(leafIndex, SUB_CIRCLE_COUNT - leafIndex)
+  return baseDelay + distanceFromFront * delayStep
 }
 
 export function getActionButtons(shell: HTMLDivElement): {

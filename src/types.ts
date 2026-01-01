@@ -32,7 +32,7 @@ export type AppElements = {
   header: HTMLElement
   canvas: HTMLDivElement
   center: HTMLButtonElement
-  guideLayer: SVGSVGElement
+  guideLayer: HTMLDivElement
   sidePanel: HTMLElement
   focusMeta: HTMLParagraphElement
   focusTitle: HTMLParagraphElement

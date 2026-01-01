@@ -1,3 +1,7 @@
+/* ===========================================
+   ASCII CIRCLES - All graphics are characters
+   =========================================== */
+
 button.circle {
   appearance: none;
   font: inherit;
@@ -9,220 +13,296 @@ button.circle {
 .circle {
   position: absolute;
   transform: translate(-50%, -50%);
-  border-radius: 50%;
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-weight: 500;
-  font-family: var(--font-body);
-  background: var(--paper);
-  color: var(--ink);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow);
-  cursor: pointer;
-  transition: all 180ms ease;
-  text-align: center;
-  padding: 0 8px;
+  font-family: var(--font-ascii);
+  font-size: var(--char);
   line-height: 1.2;
+  background: var(--paper);
+  color: var(--ink-faint);
+  border: none;
+  cursor: pointer;
+  transition: color 180ms ease;
+  text-align: center;
+  white-space: pre;
 }
 
-.canvas.is-zooming .circle {
-  transition-duration: 480ms;
-  transition-timing-function: ease-in-out;
+.circle:hover,
+.circle:focus-visible {
+  color: var(--ink);
+  outline: none;
+}
+
+.circle.is-focused {
+  color: var(--ink);
+}
+
+.circle.is-active {
+  color: var(--ink);
 }
 
 .circle.is-hidden {
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, -50%) scale(0.9);
 }
 
-/* Sub-circles: stay as small circles during fade-out */
-.sub-circle.is-hidden {
-  transform: translate(-50%, -50%);
-  transition: opacity 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  width: var(--leaf-preview-size);
-  height: var(--leaf-preview-size);
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  font-size: 0;
-  border-radius: 50%;
+.canvas.is-zooming .circle {
+  transition-duration: 480ms;
 }
 
-.circle:hover,
-.circle:focus-visible {
-  border-color: var(--wood);
-  box-shadow: var(--shadow-lifted);
-  outline: none;
-}
+/* ==============================
+   Main circles (branches)
+   Beveled rectangular ASCII box
+   4 lines total: dashes, slashes, slashes, dashes
+   ============================== */
 
-.circle.is-focused {
-  border-color: var(--wood);
-  box-shadow: 0 0 0 3px var(--wood-soft), var(--shadow);
-}
-
-.circle.is-active {
-  border-color: var(--wood);
-  background: var(--wood-soft);
-}
-
-.circle[data-filled='false'] {
-  color: var(--ink-faint);
-  border-color: var(--border);
-}
-
-/* Main circles (branches) */
 .circle.main-circle {
-  width: 72px;
-  height: 72px;
-  font-size: 0.9rem;
-  font-family: var(--font-display);
-  font-weight: 500;
+  width: auto;
+  height: auto;
   left: 0;
   top: 0;
-  border-width: 1.5px;
-  border-color: var(--wood-light);
-  transition: border-color 200ms ease;
+  padding: 0;
+  flex-direction: column;
+  position: relative;
+  line-height: 1;
+}
+
+/* Top: dashes + top slashes */
+.main-circle::before {
+  content: " ------- \A/       \\";
+  display: block;
+  opacity: 0.5;
+}
+
+/* Bottom: bottom slashes + dashes */
+.main-circle::after {
+  content: "\\       /\A ------- ";
+  display: block;
+  opacity: 0.5;
+}
+
+.main-circle[data-branch-style='1']::before {
+  content: ".-------.\A|       |";
+}
+
+.main-circle[data-branch-style='1']::after {
+  content: "|       |\A'-------'";
+}
+
+.main-circle[data-branch-style='2']::before {
+  content: "/=======\\\A|       |";
+}
+
+.main-circle[data-branch-style='2']::after {
+  content: "|       |\A\\=======/";
+}
+
+.main-circle[data-branch-style='3']::before {
+  content: "+=======+\A|       |";
+}
+
+.main-circle[data-branch-style='3']::after {
+  content: "|       |\A+=======+";
+}
+
+/* Label overlays center - doesn't add line height */
+.main-circle .circle-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 0 1ch;
+  font-family: var(--font-display);
+  font-size: calc(var(--char) * 1.1);
+  z-index: 1;
+}
+
+.main-circle:hover {
+  color: var(--ink);
+}
+
+.main-circle:hover::before,
+.main-circle:hover::after {
+  opacity: 0.8;
 }
 
 .main-circle[data-filled='true'] {
-  background: var(--paper);
-  border-color: var(--wood-light);
-  color: var(--wood-mid);
-  font-weight: 600;
-}
-
-.main-circle:hover,
-.main-circle:focus-visible {
-  border-color: var(--wood);
-}
-
-.main-circle.is-active {
-  background: var(--paper);
-  border-color: var(--wood);
-}
-
-.branch.is-preview .main-circle {
-  background: var(--paper);
-  border-color: var(--wood);
   color: var(--wood);
 }
 
-.canvas.is-zoomed .branch.is-active .main-circle {
-  transform: translate(-50%, -50%) scale(1.05);
-  border-color: var(--wood);
+.main-circle[data-filled='true']::before {
+  opacity: 0.7;
 }
 
-/* Sub circles (leaves) - default is a circle */
+.main-circle[data-filled='true']::after {
+  opacity: 0.7;
+}
+
+.branch.is-preview .main-circle {
+  color: var(--wood);
+}
+
+/* ==============================
+   Sub circles (leaves) - dots
+   ============================== */
+
 .sub-circle {
-  width: 36px;
-  height: 36px;
-  min-width: 0;
-  min-height: 0;
-  font-size: 0.6rem;
-  background: var(--paper);
-  border-color: var(--border);
-  padding: 0;
-  border-radius: 50%;
-}
-
-/* Filled leaves reshape to fit content */
-.sub-circle[data-filled='true'] {
-  width: max-content;
+  width: auto;
   height: auto;
-  min-width: 36px;
-  min-height: 44px;
-  max-width: none;
-  padding: 16px 22px;
-  line-height: 0.85;
-  border-radius: 16px;
-  white-space: pre-line;
-  overflow-wrap: normal;
-  word-break: normal;
-  hyphens: none;
-  background: var(--leaf);
-  border-color: var(--leaf);
-  color: var(--paper);
-  font-weight: 600;
+  min-width: 2ch;
+  min-height: 1.2em;
+  padding: 0;
 }
 
-.canvas.is-previewing .branch.is-preview .sub-circle {
-  width: var(--leaf-preview-size);
-  height: var(--leaf-preview-size);
+.sub-circle .circle-label {
+  display: none;
+}
+
+/* Empty leaf = single dot */
+.sub-circle[data-filled='false']::before {
+  content: "( )";
+}
+
+.sub-circle:hover[data-filled='false']::before {
+  content: "(*)";
+  color: var(--ink);
+}
+
+/* Filled leaf = ASCII box with text */
+.sub-circle[data-filled='true'] {
+  color: var(--leaf);
+}
+
+.sub-circle[data-filled='true']::before {
+  content: "[";
+}
+
+.sub-circle[data-filled='true']::after {
+  content: "]";
+}
+
+.sub-circle[data-filled='true'] .circle-label {
+  display: inline;
+}
+
+/* Hidden state */
+.sub-circle.is-hidden {
   min-width: 0;
   min-height: 0;
-  max-width: none;
-  padding: 0;
-  font-size: 0;
-  color: transparent;
-  box-shadow: none;
-  border-radius: 50%;
-  border-color: var(--border-strong);
 }
 
-.canvas.is-previewing .branch.is-preview .sub-circle[data-filled='true'] {
-  background: var(--leaf);
-  border-color: var(--leaf);
+.sub-circle.is-hidden .circle-label {
+  display: none;
+}
+
+/* Preview state */
+.canvas.is-previewing .branch.is-preview .sub-circle {
+  min-width: 0;
+  min-height: 0;
+}
+
+.canvas.is-previewing .branch.is-preview .sub-circle .circle-label {
+  display: none;
+}
+
+.canvas.is-previewing .branch.is-preview .sub-circle::before {
+  content: ".";
+}
+
+.canvas.is-previewing .branch.is-preview .sub-circle::after {
+  content: none;
+}
+
+.canvas.is-previewing .branch.is-preview .sub-circle[data-filled='true']::before {
+  content: "*";
+  color: var(--leaf);
 }
 
 .canvas.is-zooming .branch.is-active .sub-circle {
   transition-delay: var(--leaf-delay, 0ms);
 }
 
-/* Trunk */
+/* ==============================
+   Trunk (center) - beveled ASCII box
+   ============================== */
+
 .center-circle {
-  width: 120px;
-  height: 120px;
+  width: auto;
+  height: auto;
   left: 50%;
   top: 50%;
-  background: var(--wood);
-  border: none;
-  box-shadow: 0 3px 16px rgba(107, 68, 35, 0.3);
   z-index: 5;
-  color: var(--paper);
-  display: flex;
+  color: var(--wood);
+  padding: 0;
+  transition: color 320ms ease;
+  flex-direction: column;
+  line-height: 1;
+}
+
+.center-circle::before {
+  content: "/===========\\\A|           |\A|           |";
+  display: block;
+  opacity: 0.7;
+}
+
+.center-circle::after {
+  content: "|           |\A|           |\A\\===========/";
+  display: block;
+  opacity: 0.7;
+}
+
+.center-circle .center-title {
+  display: grid;
+  grid-template-columns: 1ch minmax(0, 1fr) 1ch;
   align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 0.6rem;
-  letter-spacing: 0.15em;
+  justify-items: center;
+  width: 13ch;
+  padding: 0;
   text-transform: uppercase;
-  transition: all 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.15em;
+  font-family: var(--font-display);
+  font-size: calc(var(--char) * 1);
+  line-height: 1;
+}
+
+.center-circle .center-title::before,
+.center-circle .center-title::after {
+  content: "|";
+  font-family: var(--font-ascii);
+  letter-spacing: 0;
 }
 
 .center-circle:hover,
 .center-circle:focus-visible {
-  transform: translate(-50%, -50%) scale(1.02);
-  box-shadow: 0 6px 28px rgba(139, 90, 43, 0.35);
+  color: var(--ink);
+}
+
+.center-circle:hover::before,
+.center-circle:hover::after {
+  opacity: 1;
 }
 
 .center-circle.is-minimized {
-  width: 84px;
-  height: 84px;
-  font-size: 0;
   left: var(--minimized-x, 50%);
   top: var(--minimized-y, 50%);
-  opacity: 0.85;
-  box-shadow: 0 2px 8px rgba(107, 68, 35, 0.25);
-  transition: all 320ms cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0.7;
 }
 
-.center-circle.is-minimized:hover,
-.center-circle.is-minimized:focus-visible {
-  transform: translate(-50%, -50%) scale(1.08);
-  opacity: 1;
-  box-shadow: 0 4px 16px rgba(107, 68, 35, 0.35);
+.center-circle.is-minimized::before {
+  content: "/===\\\A|   |";
+}
+
+.center-circle.is-minimized::after {
+  content: "|   |\A\\===/";
 }
 
 .center-circle.is-minimized .center-title {
-  opacity: 0;
+  font-size: 0;
+  padding: 0;
 }
 
-.center-title {
-  text-transform: uppercase;
-  font-size: 0.55rem;
-  letter-spacing: 0.2em;
-  font-weight: 500;
-  transition: opacity 200ms ease;
+.center-circle.is-minimized:hover {
+  opacity: 1;
 }

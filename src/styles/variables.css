@@ -1,7 +1,11 @@
 :root {
   color-scheme: light;
-  --font-display: "Cormorant Garamond", "Hiragino Mincho ProN", "Yu Mincho", serif;
-  --font-body: "Source Sans 3", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
+  --font-ascii: "DotGothic16", "SF Mono", "Monaco", monospace;
+
+  /* Base ASCII unit */
+  --char: 16px;
 
   /* Sumi-ink inspired palette */
   --ink: #2b1a12;
