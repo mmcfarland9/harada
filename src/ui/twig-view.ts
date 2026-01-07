@@ -425,18 +425,22 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
     if (container.classList.contains('hidden')) return
 
     if (e.key === 'Escape') {
+      e.preventDefault()
+      e.stopImmediatePropagation()
       close()
       callbacks.onClose()
       return
     }
 
     if (e.key === 'ArrowLeft' && callbacks.onNavigate) {
+      e.preventDefault()
       const prevTwig = callbacks.onNavigate('prev')
       if (prevTwig) open(prevTwig)
       return
     }
 
     if (e.key === 'ArrowRight' && callbacks.onNavigate) {
+      e.preventDefault()
       const nextTwig = callbacks.onNavigate('next')
       if (nextTwig) open(nextTwig)
       return

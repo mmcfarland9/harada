@@ -223,20 +223,15 @@ export function updateFocus(target: HTMLButtonElement | null, ctx: AppContext): 
   focusTitle.textContent = displayLabel
   focusTitle.classList.toggle('is-muted', !hasCustomLabel)
 
-  // Hide note section for twigs, show for trunk/branch
-  if (isTwig) {
-    focusNote.style.display = 'none'
+  focusNote.style.display = ''
+  if (note) {
+    // Convert line breaks to <br> for display (escape HTML first)
+    const escaped = note.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    focusNote.innerHTML = escaped.replace(/\n/g, '<br>')
   } else {
-    focusNote.style.display = ''
-    if (note) {
-      // Convert line breaks to <br> for display (escape HTML first)
-      const escaped = note.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      focusNote.innerHTML = escaped.replace(/\n/g, '<br>')
-    } else {
-      focusNote.textContent = 'Add details...'
-    }
-    focusNote.classList.toggle('is-muted', !note)
+    focusNote.textContent = 'Add details...'
   }
+  focusNote.classList.toggle('is-muted', !note)
 
   // Sprout display only for twigs
   if (isTwig) {

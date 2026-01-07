@@ -1,7 +1,7 @@
 import './styles/index.css'
 import type { AppContext } from './types'
 import { getViewMode, getActiveBranchIndex, getActiveTwigId, setViewModeState } from './state'
-import { updateFocus } from './ui/node-ui'
+import { updateFocus, setFocusedNode } from './ui/node-ui'
 import { buildApp, getActionButtons } from './ui/dom-builder'
 import { buildEditor } from './ui/editor'
 import { buildTwigView } from './ui/twig-view'
@@ -104,6 +104,8 @@ const twigView = buildTwigView(mapPanel, {
       const newTwigId = newTwig.dataset.nodeId
       if (newTwigId) {
         setViewModeState('twig', activeBranchIndex, newTwigId)
+        setFocusedNode(newTwig, ctx, (target) => updateFocus(target, ctx))
+        updateSproutProgress(ctx, newTwig)
       }
     }
     return newTwig ?? null

@@ -21,6 +21,8 @@ export function positionNodes(ctx: AppContext): void {
   const centerX = width / 2, centerY = height / 2
   const viewMode = getViewMode(), activeBranchIndex = getActiveBranchIndex()
   const isBranchView = viewMode === 'branch' && activeBranchIndex !== null
+  const isTwigView = viewMode === 'twig' && activeBranchIndex !== null
+  const isFocusedBranch = isBranchView || isTwigView
   const radiusX = Math.max(base * 0.42, width * 0.34), radiusY = height * 0.34
   let activeBranchX = centerX, activeBranchY = centerY
 
@@ -32,7 +34,7 @@ export function positionNodes(ctx: AppContext): void {
     if (index === activeBranchIndex) { activeBranchX = branchX; activeBranchY = branchY }
 
     const mainRadius = Math.max(group.branch.offsetWidth, group.branch.offsetHeight) / 2
-    const isActive = isBranchView && index === activeBranchIndex
+    const isActive = isFocusedBranch && index === activeBranchIndex
     const twigSizes = group.twigs.map(twig => isActive ? getTwigCollisionDiameter(twig) + TWIG_COLLISION_PAD * 2 : TWIG_PREVIEW_SIZE)
     const maxTwigRadius = twigSizes.length ? Math.max(...twigSizes) / 2 : TWIG_BASE_SIZE / 2
     const [minRatio, maxRatio] = isActive ? [BLOOM_MIN, BLOOM_MAX] : [BLOOM_OV_MIN, BLOOM_OV_MAX]
@@ -50,7 +52,7 @@ export function positionNodes(ctx: AppContext): void {
     })
   })
 
-  setCameraTransform(ctx, isBranchView ? centerX - activeBranchX : 0, isBranchView ? centerY - activeBranchY : 0)
+  setCameraTransform(ctx, isFocusedBranch ? centerX - activeBranchX : 0, isFocusedBranch ? centerY - activeBranchY : 0)
   drawGuideLines(ctx)
   const activeNode = getActiveNode()
   if (activeNode) editor.reposition(activeNode)
@@ -161,14 +163,14 @@ function drawGuideLines(ctx: AppContext): void {
 function applyWind(ctx: AppContext, timestamp: number): void {
   const { branchGroups, editor } = ctx
   const viewMode = getViewMode(), activeBranchIndex = getActiveBranchIndex()
-  const isBranchView = viewMode === 'branch' && activeBranchIndex !== null
+  const isFocusedBranch = (viewMode === 'branch' || viewMode === 'twig') && activeBranchIndex !== null
   const time = (timestamp - windStartTime) / 1000
-  const bAmp = WIND_BRANCH_AMP * (isBranchView ? 0.7 : 1)
-  const tAmp = WIND_TWIG_AMP * (isBranchView ? 0.85 : 1)
-  const pulse = WIND_PULSE * (isBranchView ? 0.85 : 1)
+  const bAmp = WIND_BRANCH_AMP * (isFocusedBranch ? 0.7 : 1)
+  const tAmp = WIND_TWIG_AMP * (isFocusedBranch ? 0.85 : 1)
+  const pulse = WIND_PULSE * (isFocusedBranch ? 0.85 : 1)
 
   branchGroups.forEach((bg, idx) => {
-    if (isBranchView && idx !== activeBranchIndex) return
+    if (isFocusedBranch && idx !== activeBranchIndex) return
     const seed = 97 + idx * 41
     const speed = lerp(WIND_MIN, WIND_MAX, seeded(seed, 13.7))
     const phase = seeded(seed, 23.1) * Math.PI * 2

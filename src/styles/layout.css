@@ -14,9 +14,9 @@
 .debug-lock-btn:hover { border-color: var(--ink); color: var(--ink); background: transparent; }
 
 /* === Canvas === */
-.canvas { position: relative; --canvas-max-height: max(320px, calc(100vh - 210px)); --base-scale: 1.25; width: min(100%, 1100px, calc(var(--canvas-max-height) * 14 / 9)); aspect-ratio: 14 / 9; overflow: visible; transform: translate3d(var(--camera-x, 0px), var(--camera-y, 0px), 0) scale(calc(var(--base-scale) * var(--camera-scale, 1))); transform-origin: center; transition: transform 480ms ease-in-out; will-change: transform; }
+.canvas { position: relative; --canvas-max-height: max(320px, calc(100vh - 210px)); --base-scale: 1.25; width: min(100%, 1100px, calc(var(--canvas-max-height) * 14 / 9)); aspect-ratio: 14 / 9; overflow: visible; transform: translate3d(var(--camera-x, 0px), var(--camera-y, 0px), 0) scale(calc(var(--base-scale) * var(--camera-scale, 1))); transform-origin: var(--zoom-origin-x, 50%) var(--zoom-origin-y, 50%); transition: transform 480ms ease-in-out; will-change: transform; }
 .canvas.is-zoomed { --camera-scale: 1.02; }
-.canvas.is-twig-zoomed { --base-scale: 1; --camera-scale: 1; transform: none; overflow: hidden; }
+.canvas.is-twig-zoomed { --camera-scale: 1.12; overflow: hidden; }
 .canvas.is-twig-zoomed .branch-group,
 .canvas.is-twig-zoomed .node.trunk { opacity: 0; pointer-events: none; }
 .canvas.is-twig-zoomed + .guide-layer { opacity: 0; }

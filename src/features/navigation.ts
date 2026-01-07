@@ -10,11 +10,44 @@ import {
 import { animateGuideLines } from '../ui/layout'
 
 let zoomTimeoutId = 0
+let zoomOriginTimeoutId = 0
 const fadeTimeouts = new Map<number, number>() // branchIndex -> timeoutId
 
 export type NavigationCallbacks = {
   onPositionNodes: () => void
   onUpdateStats: () => void
+}
+
+function setTwigZoomOrigin(ctx: AppContext, twigNode: HTMLElement): void {
+  if (zoomOriginTimeoutId) {
+    window.clearTimeout(zoomOriginTimeoutId)
+    zoomOriginTimeoutId = 0
+  }
+
+  const canvas = ctx.elements.canvas
+  const canvasRect = canvas.getBoundingClientRect()
+  const twigRect = twigNode.getBoundingClientRect()
+  if (!canvasRect.width || !canvasRect.height) return
+
+  const centerX = twigRect.left + twigRect.width / 2
+  const centerY = twigRect.top + twigRect.height / 2
+  const originX = ((centerX - canvasRect.left) / canvasRect.width) * 100
+  const originY = ((centerY - canvasRect.top) / canvasRect.height) * 100
+  const clampedX = Math.min(100, Math.max(0, originX))
+  const clampedY = Math.min(100, Math.max(0, originY))
+
+  canvas.style.setProperty('--zoom-origin-x', `${clampedX}%`)
+  canvas.style.setProperty('--zoom-origin-y', `${clampedY}%`)
+}
+
+function resetTwigZoomOrigin(ctx: AppContext): void {
+  if (zoomOriginTimeoutId) {
+    window.clearTimeout(zoomOriginTimeoutId)
+    zoomOriginTimeoutId = 0
+  }
+
+  ctx.elements.canvas.style.removeProperty('--zoom-origin-x')
+  ctx.elements.canvas.style.removeProperty('--zoom-origin-y')
 }
 
 export function updateVisibility(ctx: AppContext): void {
@@ -112,6 +145,9 @@ export function setViewMode(
   const previousMode = getViewMode()
   const previousBranch = getActiveBranchIndex()
 
+  if (previousMode === 'twig') {
+    resetTwigZoomOrigin(ctx)
+  }
   setViewModeState(mode, branchIndex)
 
   const shouldAnimate = previousMode !== mode || previousBranch !== getActiveBranchIndex()
@@ -176,6 +212,7 @@ export function enterTwigView(
   const twigId = twigNode.dataset.nodeId
   if (!twigId) return
 
+  setTwigZoomOrigin(ctx, twigNode)
   const previousMode = getViewMode()
   setViewModeState('twig', branchIndex, twigId)
 
@@ -221,4 +258,3 @@ export function returnToBranchView(
     setFocusedNode(branch, ctx, (t) => updateFocus(t, ctx))
   }
 }
-
