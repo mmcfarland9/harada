@@ -147,7 +147,7 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
         </div>
       </div>
       <div class="sprout-column sprout-active">
-        <h3 class="column-title">Active <span class="active-count">(0)</span></h3>
+        <h3 class="column-title">Growing <span class="active-count">(0)</span></h3>
         <div class="active-sprouts-list"></div>
       </div>
       <div class="sprout-column sprout-history">
@@ -272,20 +272,20 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
   }
 
   function renderHistoryCard(s: Sprout): string {
-    const titleHtml = s.leafId
-      ? `<button type="button" class="sprout-card-title sprout-card-title-link" data-leaf-id="${s.leafId}">${s.title}</button>`
-      : `<p class="sprout-card-title">${s.title}</p>`
+    const hasLeaf = !!s.leafId
 
     return `
-      <div class="sprout-card sprout-history-card ${s.state === 'failed' ? 'is-failed' : 'is-completed'}" data-id="${s.id}">
+      <div class="sprout-card sprout-history-card ${s.state === 'failed' ? 'is-failed' : 'is-completed'} ${hasLeaf ? 'is-clickable' : ''}" data-id="${s.id}" ${hasLeaf ? `data-leaf-id="${s.leafId}"` : ''}>
         <div class="sprout-card-header">
-          <span class="sprout-card-icon">${getResultEmoji(s.result || 1)}</span>
-          <span class="sprout-card-result">${s.result || 1}/5</span>
+          <span class="sprout-card-season">${getSeasonLabel(s.season)}</span>
           <button type="button" class="sprout-delete-btn" aria-label="Uproot">x</button>
         </div>
-        ${titleHtml}
+        <p class="sprout-card-title">${s.title}</p>
+        <div class="sprout-result-section">
+          <span class="sprout-result-display">${getResultEmoji(s.result || 1)} ${s.result || 1}/5</span>
+          <span class="sprout-card-date">${s.completedAt ? formatDate(new Date(s.completedAt)) : ''}</span>
+        </div>
         ${s.reflection ? `<p class="sprout-card-reflection">${s.reflection}</p>` : ''}
-        <p class="sprout-card-date">${s.completedAt ? formatDate(new Date(s.completedAt)) : ''}</p>
       </div>
     `
   }
@@ -303,9 +303,10 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
       const ready = isReady(s)
       const progress = getGrowthProgress(s)
       const daysLeft = getDaysRemaining(s)
+      const hasLeaf = !!s.leafId
 
       return `
-      <div class="sprout-card sprout-active-card ${ready ? 'is-ready' : 'is-growing'}" data-id="${s.id}">
+      <div class="sprout-card sprout-active-card ${ready ? 'is-ready' : 'is-growing'} ${hasLeaf ? 'is-clickable' : ''}" data-id="${s.id}" ${hasLeaf ? `data-leaf-id="${s.leafId}"` : ''}>
         <div class="sprout-card-header">
           <span class="sprout-card-season">${getSeasonLabel(s.season)}</span>
           <button type="button" class="sprout-delete-btn" aria-label="Uproot">x</button>
@@ -336,7 +337,7 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
           </div>
         `}
       </div>
-    `}).join('') || '<p class="empty-message">No active sprouts</p>'
+    `}).join('') || '<p class="empty-message">No growing sprouts</p>'
 
     // Render history - grouped by leaf
     const nodeId = getCurrentNodeId()
@@ -498,11 +499,15 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
       })
     })
 
-    // Sprout title links - click to open leaf view
-    container.querySelectorAll<HTMLButtonElement>('.sprout-card-title-link').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const leafId = btn.dataset.leafId
+    // Clickable cards - click to open leaf view
+    container.querySelectorAll<HTMLDivElement>('.sprout-card.is-clickable').forEach(card => {
+      card.addEventListener('click', (e) => {
+        // Don't trigger if clicking on interactive elements
+        const target = e.target as HTMLElement
+        if (target.closest('button') || target.closest('input') || target.closest('textarea')) {
+          return
+        }
+        const leafId = card.dataset.leafId
         const nodeId = getCurrentNodeId()
         const branchIndex = currentTwigNode?.dataset.branchIndex
         if (leafId && nodeId && branchIndex !== undefined && callbacks.onOpenLeaf) {
@@ -565,6 +570,12 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
     const cost = calculateSoilCost(selectedSeason, selectedEnvironment)
     if (!spendSoil(cost)) return
 
+    const nodeId = getCurrentNodeId()
+    if (!nodeId) return
+
+    // Create leaf immediately so sprout is clickable from the start
+    const leaf = createLeaf(nodeId)
+
     const now = new Date()
     const newSprout: Sprout = {
       id: generateSproutId(),
@@ -576,6 +587,7 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
       createdAt: now.toISOString(),
       activatedAt: now.toISOString(),
       endDate: getEndDate(selectedSeason, now).toISOString(),
+      leafId: leaf.id,
     }
 
     const sprouts = getSprouts()

@@ -242,7 +242,7 @@ export function updateFocus(target: HTMLButtonElement | null, ctx: AppContext): 
       focusGoal.innerHTML = `Active (${activeSprouts.length}):<br>${sproutList}`
       focusGoal.classList.remove('is-muted')
     } else {
-      focusGoal.textContent = 'No active sprouts'
+      focusGoal.textContent = 'No growing sprouts'
       focusGoal.classList.add('is-muted')
     }
   } else {

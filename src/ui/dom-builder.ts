@@ -307,7 +307,12 @@ export function buildApp(
   debugSoilResetBtn.className = 'debug-clock-btn'
   debugSoilResetBtn.title = 'Reset soil to default capacity'
   debugSoilResetBtn.textContent = 'Reset Soil'
-  debugClockRow.append(debugClockOffset, debugClockBtn, debugSoilResetBtn)
+  const debugClearSproutsBtn = document.createElement('button')
+  debugClearSproutsBtn.type = 'button'
+  debugClearSproutsBtn.className = 'debug-clock-btn'
+  debugClearSproutsBtn.title = 'Clear all sprouts and leaves'
+  debugClearSproutsBtn.textContent = 'Clear Sprouts'
+  debugClockRow.append(debugClockOffset, debugClockBtn, debugSoilResetBtn, debugClearSproutsBtn)
 
   debugPanel.append(debugLabel, debugClockRow)
   mapPanel.append(canvas, guideLayer, debugPanel)
@@ -334,7 +339,7 @@ export function buildApp(
     <section class="panel-section sprouts-section">
       <button type="button" class="sprouts-toggle is-expanded" data-section="active">
         <span class="sprouts-toggle-arrow">▼</span>
-        <span class="sprouts-toggle-label">Active</span>
+        <span class="sprouts-toggle-label">Growing</span>
         <span class="sprouts-toggle-count">(0)</span>
       </button>
       <div class="sprouts-list" data-section="active"></div>
@@ -1746,6 +1751,7 @@ export function buildApp(
     debugCheckbox,
     debugClockBtn,
     debugSoilResetBtn,
+    debugClearSproutsBtn,
     debugClockOffset,
     sproutsDialog,
     sproutsDialogContent: sproutsDialog.querySelector<HTMLDivElement>('.sprouts-dialog-content')!,

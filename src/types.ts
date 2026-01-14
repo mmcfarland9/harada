@@ -118,6 +118,7 @@ export type AppElements = {
   debugCheckbox: HTMLInputElement
   debugClockBtn: HTMLButtonElement
   debugSoilResetBtn: HTMLButtonElement
+  debugClearSproutsBtn: HTMLButtonElement
   debugClockOffset: HTMLSpanElement
   sproutsDialog: HTMLDivElement
   sproutsDialogContent: HTMLDivElement

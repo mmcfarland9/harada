@@ -139,6 +139,7 @@ const twigView = buildTwigView(mapPanel, {
 
 const leafView = buildLeafView(mapPanel, {
   onClose: () => {
+    leafView.close()
     // Return to twig view
     const activeBranchIndex = getActiveBranchIndex()
     const activeTwigId = getActiveTwigId()
@@ -242,9 +243,9 @@ function renderSproutsDialog(): void {
 
   content.innerHTML = `
     <div class="sprouts-dialog-section">
-      <h3 class="sprouts-dialog-section-title">Active (${active.length})</h3>
+      <h3 class="sprouts-dialog-section-title">Growing (${active.length})</h3>
       <div class="sprouts-dialog-list">
-        ${active.length ? active.map(s => renderItem(s)).join('') : '<p class="sprouts-dialog-empty">No active sprouts</p>'}
+        ${active.length ? active.map(s => renderItem(s)).join('') : '<p class="sprouts-dialog-empty">No growing sprouts</p>'}
       </div>
     </div>
     <div class="sprouts-dialog-section">
@@ -392,6 +393,19 @@ domResult.elements.debugSoilResetBtn.addEventListener('click', () => {
   resetSoil()
   updateSoilMeter()
   setStatus(ctx.elements, 'Soil reset to default capacity', 'info')
+})
+
+domResult.elements.debugClearSproutsBtn.addEventListener('click', () => {
+  // Clear all sprouts and leaves from all twigs
+  Object.keys(nodeState).forEach(nodeId => {
+    if (nodeState[nodeId]) {
+      nodeState[nodeId].sprouts = undefined
+      nodeState[nodeId].leaves = undefined
+    }
+  })
+  saveState()
+  updateStats(ctx)
+  setStatus(ctx.elements, 'Cleared all sprouts and leaves', 'info')
 })
 
 domResult.elements.backToTrunkButton.addEventListener('click', () => {

@@ -39,7 +39,7 @@ export function updateScopedProgress(ctx: AppContext): void {
       const filledTwigs = branchGroup.twigs.filter((twig) => twig.dataset.filled === 'true').length
       const activeSprouts = countActiveSproutsForTwigs(branchGroup.twigs)
 
-      progressCount.innerHTML = `<br>${filledTwigs} of ${TWIG_COUNT} twigs filled<br>${activeSprouts} active sprouts`
+      progressCount.innerHTML = `<br>${filledTwigs} of ${TWIG_COUNT} twigs filled<br>${activeSprouts} growing sprouts`
       const progress = Math.round((filledTwigs / TWIG_COUNT) * 100)
       progressFill.style.width = `${progress}%`
       return
@@ -58,7 +58,7 @@ export function updateScopedProgress(ctx: AppContext): void {
     0
   )
 
-  progressCount.innerHTML = `${filledBranches} of ${branchGroups.length} branches filled<br>${filledTwigs} of ${totalTwigs} twigs filled<br>${activeSprouts} active sprouts`
+  progressCount.innerHTML = `${filledBranches} of ${branchGroups.length} branches filled<br>${filledTwigs} of ${totalTwigs} twigs filled<br>${activeSprouts} growing sprouts`
   const progress = totalTwigs ? Math.round((filledTwigs / totalTwigs) * 100) : 0
   progressFill.style.width = `${progress}%`
 }
@@ -415,7 +415,7 @@ function createSproutItem(
   info.append(meta)
   item.append(info)
 
-  // Water/Reap/Prune action for active sprouts (appears on hover)
+  // Water/Reap/Prune action for growing sprouts (appears on hover)
   if (isActive && onWaterClick) {
     const waterBtn = document.createElement('button')
     waterBtn.type = 'button'
