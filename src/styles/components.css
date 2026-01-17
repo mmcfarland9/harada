@@ -2615,50 +2615,12 @@
 
 .water-dialog-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: var(--space-3);
-  margin-top: var(--space-2);
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-3);
 }
 
-.water-dialog-cancel,
-.water-dialog-save {
-  padding: var(--space-2) var(--space-4);
-  font-family: var(--font-ascii);
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
-}
-
-.water-dialog-cancel {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-faint);
-}
-
-.water-dialog-cancel:hover {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-
-.water-dialog-save {
-  background: rgba(70, 130, 180, 0.1);
-  border: 1px solid var(--water);
-  color: var(--water);
-}
-
-.water-dialog-save:hover:not(:disabled) {
-  background: rgba(70, 130, 180, 0.2);
-}
-
-.water-dialog-save:disabled {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--ink-faint);
-  cursor: default;
-  opacity: 0.5;
-}
+/* Button styles now handled by .action-btn system */
 
 /* === Shine (Sun) Journaling Dialog === */
 .shine-dialog {

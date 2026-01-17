@@ -1744,8 +1744,8 @@ export function buildApp(
         <p class="water-dialog-sprout-meta"></p>
         <textarea class="water-dialog-journal" placeholder="How is this sprout growing? Reflect on your progress..."></textarea>
         <div class="water-dialog-actions">
-          <button type="button" class="water-dialog-cancel">Cancel</button>
-          <button type="button" class="water-dialog-save">Pour</button>
+          <button type="button" class="action-btn action-btn-passive action-btn-neutral water-dialog-cancel">Cancel</button>
+          <button type="button" class="action-btn action-btn-progress action-btn-water water-dialog-save">Pour</button>
         </div>
       </div>
     </div>
