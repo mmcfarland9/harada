@@ -1,14 +1,49 @@
 /* === Tokens === */
 :root {
   color-scheme: light;
+
+  /* Typography */
   --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --font-body: "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif;
   --font-ascii: "DotGothic16", "SF Mono", "Monaco", monospace;
+
+  /* Type Scale (5 steps) */
+  --text-xs: 0.625rem;   /* 10px - meta, hints */
+  --text-sm: 0.75rem;    /* 12px - labels, secondary */
+  --text-base: 0.875rem; /* 14px - body text */
+  --text-lg: 1rem;       /* 16px - emphasis */
+  --text-xl: 1.125rem;   /* 18px - headings */
+
+  /* Spacing Scale (6 steps) */
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.5rem;   /* 24px */
+  --space-6: 2rem;     /* 32px */
+
+  /* Colors */
+  --ink: #2b1a12;
+  --ink-light: #4a3325;
+  --ink-faint: #6f5644;
+  --wood: #6b4423;
+  --twig: #3a6b4a;
+  --paper: #f8f6f1;
+  --water: steelblue;
+  --sun: #d4a000;
+
+  /* Borders (3 treatments) */
+  --border-subtle: rgba(60, 40, 20, 0.08);
+  --border: rgba(60, 40, 20, 0.15);
+  --border-strong: rgba(60, 40, 20, 0.25);
+
+  /* Semantic */
+  --success-tone: var(--twig);
+  --warning-tone: #8b6b2f;
+  --error-tone: #8a4a3a;
+
+  /* Legacy (for transition) */
   --char: 16px;
-  --ink: #2b1a12; --ink-light: #4a3325; --ink-faint: #6f5644;
-  --wood: #6b4423; --twig: #3a6b4a; --paper: #f8f6f1;
-  --border: rgba(60, 40, 20, 0.1); --border-strong: rgba(60, 40, 20, 0.18);
-  --success-tone: var(--twig); --warning-tone: #8b6b2f; --error-tone: #8a4a3a;
 }
 
 /* === Reset === */

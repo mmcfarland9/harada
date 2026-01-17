@@ -414,49 +414,49 @@
 .focus-goal { margin: var(--space-2) 0 0; color: var(--ink-light); line-height: 1.4; }
 .focus-title.is-muted, .focus-note.is-muted, .focus-goal.is-muted { color: var(--ink-faint); }
 .period-section { padding: var(--space-1) 0 0; }
-.period-date { margin: 0.5rem 0 0.25rem; font-size: var(--text-sm); color: var(--ink); }
+.period-date { margin: var(--space-2) 0 var(--space-1); font-size: var(--text-sm); color: var(--ink); }
 .period-selector { display: flex; gap: var(--space-2); font-family: var(--font-ascii); }
 .period-btn { background: transparent; border: none; padding: 0; font-family: inherit; font-size: var(--text-sm); color: var(--ink-faint); cursor: pointer; }
-.period-start-btn { margin-top: 0.5rem; padding: 0.4rem 0.75rem; font-family: var(--font-ascii); font-size: 0.8rem; background: transparent; border: 1px solid var(--border-strong); color: var(--ink); cursor: pointer; }
+.period-start-btn { margin-top: var(--space-2); padding: var(--space-1) var(--space-3); font-family: var(--font-ascii); font-size: var(--text-base); background: transparent; border: 1px solid var(--border-strong); color: var(--ink); cursor: pointer; }
 .period-start-btn:hover { border-color: var(--ink); }
 .period-btn::before { content: '['; visibility: hidden; }
 .period-btn::after { content: ']'; visibility: hidden; }
 .period-btn.is-active { color: var(--ink); }
 .period-btn.is-active::before, .period-btn.is-active::after { visibility: visible; }
 /* Progress elements hidden for now - kept for future use */
-.progress-count { display: none; margin: 0 0 0.75rem; color: var(--ink); font-weight: 400; min-height: 3.6em; line-height: 1.2; }
+.progress-count { display: none; margin: 0 0 var(--space-3); color: var(--ink); font-weight: 400; min-height: 3.6em; line-height: 1.2; }
 .progress-track { display: none; width: 100%; height: 12px; background: transparent; border: 1px solid var(--border); overflow: hidden; }
 .progress-fill { display: block; height: 100%; background: var(--twig); opacity: 0.3; transition: width 300ms ease; }
 .progress-actions { margin-top: 1rem; }
-.branch-progress { margin-top: 0.75rem; display: none; flex-direction: column; gap: 0.35rem; }
+.branch-progress { margin-top: var(--space-3); display: none; flex-direction: column; gap: var(--space-1); }
 .branch-progress.has-content { display: flex; }
-.branch-item { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; background: transparent; border: none; padding: 0.4rem 0.5rem; margin: 0 -0.5rem; text-align: left; cursor: pointer; transition: all 150ms ease; min-height: 2em; align-items: center; }
+.branch-item { display: grid; grid-template-columns: 1fr auto; gap: var(--space-2); background: transparent; border: none; padding: var(--space-1) var(--space-2); margin: 0 calc(-1 * var(--space-2)); text-align: left; cursor: pointer; transition: all 150ms ease; min-height: 2em; align-items: center; }
 .branch-item:hover { background: rgba(0, 0, 0, 0.04); }
 .branch-item.is-current .branch-label { color: var(--twig); }
 .branch-item:hover .branch-label { color: var(--wood); }
 .branch-label { font-weight: 400; color: var(--ink-faint); transition: color 150ms ease; text-decoration: underline; text-decoration-color: transparent; text-underline-offset: 2px; pointer-events: none; word-break: break-word; line-height: 1.4; }
 .branch-item:hover .branch-label { text-decoration-color: var(--wood); }
 .branch-item.is-labeled .branch-label { color: var(--ink); }
-.branch-count { font-size: 0.75rem; color: var(--ink-faint); align-self: center; pointer-events: none; }
+.branch-count { font-size: var(--text-sm); color: var(--ink-faint); align-self: center; pointer-events: none; }
 .status-message { margin: 0 0 0.2rem; font-size: 0.8rem; color: var(--ink-faint); }
 .status-message[data-tone='success'] { color: var(--success-tone); }
 .status-message[data-tone='warning'] { color: var(--warning-tone); }
 .status-message[data-tone='error'] { color: var(--error-tone); }
-.status-meta { margin: 0; font-size: 0.75rem; color: var(--ink-faint); opacity: 0.7; }
+.status-meta { margin: 0; font-size: var(--text-sm); color: var(--ink-faint); opacity: 0.7; }
 
 /* === Editor === */
 .node-editor { position: fixed; transform: translate(-50%, -100%); min-width: 240px; max-width: 300px; background: var(--paper); box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12); padding: 1.25rem; z-index: 1000; opacity: 1; transition: opacity 150ms ease; overflow: visible; }
 .node-editor.hidden { opacity: 0; pointer-events: none; }
-.editor-close-btn { position: absolute; top: 0.25rem; right: 0.25rem; width: 1.25rem; height: 1.25rem; padding: 0; background: transparent; border: none; font-family: var(--font-ascii); font-size: 0.9rem; line-height: 1; color: var(--ink-faint); cursor: pointer; opacity: 0.5; transition: opacity 150ms ease, color 150ms ease; }
+.editor-close-btn { position: absolute; top: var(--space-1); right: var(--space-1); width: 1.25rem; height: 1.25rem; padding: 0; background: transparent; border: none; font-family: var(--font-ascii); font-size: var(--text-base); line-height: 1; color: var(--ink-faint); cursor: pointer; opacity: 0.5; transition: opacity 150ms ease, color 150ms ease; }
 .editor-close-btn:hover { opacity: 1; color: var(--ink); }
-.editor-card { display: flex; flex-direction: column; gap: 0.75rem; margin: 0; }
+.editor-card { display: flex; flex-direction: column; gap: var(--space-3); margin: 0; }
 .editor-label { display: flex; flex-direction: column; gap: 0.35rem; }
-.editor-input, .editor-textarea { width: 100%; border: none; border-bottom: 1px solid var(--border-strong); background: transparent; color: var(--ink); padding: 0.5rem 0; font-family: var(--font-body); font-size: 0.9rem; resize: vertical; min-height: 36px; }
+.editor-input, .editor-textarea { width: 100%; border: none; border-bottom: 1px solid var(--border-strong); background: transparent; color: var(--ink); padding: var(--space-2) 0; font-family: var(--font-body); font-size: var(--text-base); resize: vertical; min-height: 36px; }
 .editor-input:focus, .editor-textarea:focus { outline: none; border-color: var(--wood); }
 .editor-input.is-locked { border-bottom-color: transparent; color: var(--ink-light); cursor: default; }
-.editor-actions { display: flex; justify-content: space-between; gap: 0.5rem; margin-top: 0.25rem; }
+.editor-actions { display: flex; justify-content: space-between; gap: var(--space-2); margin-top: var(--space-1); }
 .editor-clear, .editor-cancel, .editor-save { padding: var(--space-1) 0; font-size: var(--text-sm); }
-.editor-goal-section { display: flex; flex-direction: column; gap: 0.5rem; position: relative; }
+.editor-goal-section { display: flex; flex-direction: column; gap: var(--space-2); position: relative; }
 .editor-goal-section::before { content: attr(data-tooltip); position: absolute; right: 100%; top: 50%; transform: translateY(-50%); margin-right: 1.5rem; padding: 0.2rem 0.5rem; font-size: 0.6rem; font-style: italic; line-height: 1.15; color: var(--ink); background: var(--paper); border: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.1); white-space: pre-line; opacity: 0; pointer-events: none; transition: opacity 150ms ease; z-index: 10; }
 .editor-goal-section.is-locked:has(.editor-goal-binary:hover, .editor-goal-continuous:hover, .goal-submit-btn:hover)::before { opacity: 1; }
 .goal-type-toggle { display: flex; gap: 0; border: 1px solid var(--border-strong); }
@@ -475,11 +475,11 @@
 .result-btn::after { content: ']'; visibility: hidden; }
 .result-btn.is-active { color: var(--ink); }
 .result-btn.is-active::before, .result-btn.is-active::after { visibility: visible; }
-.goal-slider-row { display: flex; align-items: center; gap: 0.5rem; }
-.editor-slider { flex: 1; height: 0.5rem; cursor: pointer; appearance: none; background: var(--border-strong); }
+.goal-slider-row { display: flex; align-items: center; gap: var(--space-2); }
+.editor-slider { flex: 1; height: var(--space-2); cursor: pointer; appearance: none; background: var(--border-strong); }
 .editor-slider::-webkit-slider-thumb { appearance: none; width: 1rem; height: 1rem; background: var(--ink); cursor: pointer; }
 .goal-value { font-size: 0.8rem; min-width: 2.5rem; text-align: right; color: var(--ink-light); }
-.goal-actions { display: flex; gap: 0.5rem; }
+.goal-actions { display: flex; gap: var(--space-2); }
 .goal-action-btn { flex: 1; padding: var(--space-1) var(--space-2); font-size: var(--text-sm); font-family: var(--font-ascii); border: 1px solid var(--border-strong); background: transparent; color: var(--ink); cursor: pointer; }
 .goal-action-btn:disabled { color: var(--ink-faint); cursor: default; }
 .editor-save { color: var(--ink); }
@@ -518,8 +518,8 @@
 .twig-view-header {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-4);
+  margin-bottom: var(--space-3);
 }
 
 .twig-nav-row {
@@ -527,7 +527,7 @@
   justify-content: space-between;
   align-items: center;
   margin-top: auto;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .twig-back-btn {
@@ -548,7 +548,7 @@
 
 .twig-nav-arrows {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .twig-prev-btn,
@@ -572,7 +572,7 @@
 .debug-clock-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .debug-clock-btn {
@@ -601,7 +601,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-1);
   min-width: 0;
 }
 
@@ -649,7 +649,7 @@
   flex: 1;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
+  gap: var(--space-5);
   overflow: hidden;
   min-height: 0;
 }
@@ -657,10 +657,10 @@
 .sprout-column {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 0.25rem;
+  padding-right: var(--space-1);
   min-height: 0;
 }
 
@@ -682,14 +682,14 @@
 .sprout-draft-form {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  padding: 0.75rem;
+  gap: var(--space-2);
+  padding: var(--space-3);
   border: 1px solid var(--border);
 }
 
 .sprout-type-toggle {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   font-family: var(--font-ascii);
 }
 
@@ -748,12 +748,12 @@
   color: var(--ink-faint);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .sprout-season-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
   font-family: var(--font-ascii);
 }
@@ -784,7 +784,7 @@
 /* Environment selector */
 .sprout-environment-selector {
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   flex-wrap: wrap;
   font-family: var(--font-ascii);
 }
@@ -829,7 +829,7 @@
   font-size: calc(var(--char) * 0.6 * var(--twig-scale));
   color: var(--wood);
   min-height: 1.4em;
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .sprout-soil-cost.insufficient {
@@ -839,7 +839,7 @@
 /* Plant button - extends .sprout-action-btn */
 .sprout-set-btn {
   align-self: flex-start;
-  margin-top: 0.35rem;
+  margin-top: var(--space-1);
 }
 
 /* Unified Action Buttons (Plant, Water, Harvest, Graft) */
@@ -1842,8 +1842,8 @@
 /* Notes section */
 .guide-notes {
   border-top: 1px solid var(--border);
-  padding-top: 1rem;
-  margin-top: 0.5rem;
+  padding-top: var(--space-4);
+  margin-top: var(--space-2);
 }
 
 .guide-list {
@@ -1856,7 +1856,7 @@
 }
 
 .guide-list li {
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-1);
 }
 
 /* Guide Tabs */
@@ -1864,7 +1864,7 @@
   display: flex;
   gap: 0;
   border-bottom: 1px solid var(--border);
-  padding: 0 1rem;
+  padding: 0 var(--space-4);
   overflow-x: auto;
 }
 
@@ -1874,7 +1874,7 @@
   font-family: var(--font-ascii);
   font-size: calc(var(--char) * 0.6);
   color: var(--ink-faint);
-  padding: 0.6rem 0.75rem;
+  padding: var(--space-2) var(--space-3);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -1899,14 +1899,14 @@
 .guide-panel.is-active {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--space-4);
 }
 
 /* Biome Grid & Cards */
 .biome-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 @media (max-width: 600px) {
@@ -1917,16 +1917,16 @@
 
 .biome-card {
   border: 1px solid var(--border);
-  padding: 0.75rem;
+  padding: var(--space-3);
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .biome-card-header {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .biome-card-icon {
@@ -1958,8 +1958,8 @@
 .biome-card-traits {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  margin-top: 0.25rem;
+  gap: var(--space-1);
+  margin-top: var(--space-1);
 }
 
 .biome-trait {
@@ -1972,7 +1972,7 @@
 }
 
 .biome-card-species {
-  margin-top: 0.25rem;
+  margin-top: var(--space-1);
 }
 
 .biome-species {
@@ -1985,7 +1985,7 @@
 .flora-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 @media (max-width: 600px) {
@@ -1997,8 +1997,8 @@
 .flora-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: var(--space-2);
+  padding: var(--space-2);
   border: 1px solid var(--border);
 }
 
@@ -2071,8 +2071,8 @@
 .fauna-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 @media (max-width: 600px) {
@@ -2086,14 +2086,14 @@
   font-size: calc(var(--char) * 0.6);
   font-weight: normal;
   color: var(--ink);
-  margin: 0.75rem 0 0.35rem;
+  margin: var(--space-3) 0 var(--space-1);
 }
 
 .fauna-card {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  padding: 0.5rem;
+  gap: var(--space-2);
+  padding: var(--space-2);
   border: 1px solid var(--border);
 }
 
@@ -2172,7 +2172,7 @@
   background: transparent;
   border: none;
   font-family: var(--font-body);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   font-weight: 500;
   color: var(--ink);
   cursor: pointer;
@@ -2883,38 +2883,38 @@
 
 .log-entry-meta {
   font-family: var(--font-ascii);
-  font-size: 0.65rem;
+  font-size: var(--text-xs);
   color: var(--ink-faint);
-  margin: 0.25rem 0 0 0;
+  margin: var(--space-1) 0 0 0;
 }
 
 .log-entry-result {
   font-family: var(--font-ascii);
-  font-size: 0.8rem;
-  margin: 0.25rem 0 0 0;
+  font-size: var(--text-base);
+  margin: var(--space-1) 0 0 0;
 }
 
 .log-entry-reflection {
   font-family: var(--font-ascii);
-  font-size: 0.7rem;
+  font-size: var(--text-sm);
   color: var(--ink-faint);
   font-style: italic;
-  margin: 0.5rem 0 0 0;
-  padding-left: 0.5rem;
+  margin: var(--space-2) 0 0 0;
+  padding-left: var(--space-2);
   border-left: 2px solid var(--border);
 }
 
 .log-entry-prompt {
   font-family: var(--font-ascii);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   color: var(--ink-faint);
   font-style: italic;
-  margin: 0 0 0.25rem 0;
+  margin: 0 0 var(--space-1) 0;
 }
 
 .log-entry-content {
   font-family: var(--font-ascii);
-  font-size: 0.75rem;
+  font-size: var(--text-sm);
   color: var(--ink);
   margin: 0;
   line-height: 1.4;
@@ -2951,15 +2951,15 @@
 /* Graft button in log */
 
 .log-graft-btn {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   background: rgba(139, 195, 74, 0.1);
   border: 1px solid var(--twig);
   color: var(--twig);
   font-family: var(--font-ascii);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   cursor: pointer;
   transition: background 150ms ease;
 }
@@ -2971,17 +2971,17 @@
 /* Graft Section */
 
 .log-graft-section {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .log-graft-trigger {
   width: 100%;
-  padding: 0.6rem 1rem;
+  padding: var(--space-2) var(--space-4);
   background: rgba(139, 195, 74, 0.08);
   border: 1px dashed var(--twig);
   color: var(--twig);
   font-family: var(--font-ascii);
-  font-size: 0.7rem;
+  font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   cursor: pointer;
@@ -3000,12 +3000,12 @@
 /* Inline Graft Form */
 
 .log-graft-form {
-  padding: 0.75rem;
+  padding: var(--space-3);
   border: 1px solid var(--twig);
   background: rgba(139, 195, 74, 0.05);
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .log-graft-form.hidden {
@@ -3014,9 +3014,9 @@
 
 .graft-title-input {
   width: 100%;
-  padding: 0.5rem;
+  padding: var(--space-2);
   font-family: var(--font-ascii);
-  font-size: 0.85rem;
+  font-size: var(--text-base);
   border: 1px solid var(--border);
   background: transparent;
   color: var(--ink);
@@ -3030,13 +3030,13 @@
 .graft-selectors {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .graft-season-selector,
 .graft-env-selector {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-1);
   flex-wrap: wrap;
 }
 
@@ -3071,12 +3071,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .graft-soil-cost {
   font-family: var(--font-ascii);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   color: var(--ink-faint);
 }
 
@@ -3086,14 +3086,14 @@
 
 .graft-actions {
   display: flex;
-  gap: 0.25rem;
+  gap: var(--space-1);
 }
 
 .graft-cancel-btn,
 .graft-confirm-btn {
-  padding: 0.25rem 0.5rem;
+  padding: var(--space-1) var(--space-2);
   font-family: var(--font-ascii);
-  font-size: 0.6rem;
+  font-size: var(--text-xs);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   cursor: pointer;
