@@ -3068,45 +3068,6 @@
 
 .graft-actions {
   display: flex;
-  gap: var(--space-1);
-}
-
-.graft-cancel-btn,
-.graft-confirm-btn {
-  padding: var(--space-1) var(--space-2);
-  font-family: var(--font-ascii);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  transition: all 150ms ease;
-}
-
-.graft-cancel-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  color: var(--ink-faint);
-}
-
-.graft-cancel-btn:hover {
-  border-color: var(--ink);
-  color: var(--ink);
-}
-
-.graft-confirm-btn {
-  background: rgba(139, 195, 74, 0.1);
-  border: 1px solid var(--twig);
-  color: var(--twig);
-}
-
-.graft-confirm-btn:hover:not(:disabled) {
-  background: rgba(139, 195, 74, 0.2);
-}
-
-.graft-confirm-btn:disabled {
-  background: transparent;
-  border-color: var(--border);
-  color: var(--ink-faint);
-  cursor: default;
-  opacity: 0.5;
+  justify-content: space-between;
+  align-items: center;
 }

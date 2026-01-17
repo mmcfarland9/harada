@@ -1,10 +1,10 @@
 import type { LeafViewApi, Sprout, Leaf, SproutSeason, SproutEnvironment } from '../types'
 import {
   nodeState,
+  saveState,
   getLeafById,
   getSproutsByLeaf,
-  getActiveSprouts,
-  graftSprout,
+  graftFromLeaf,
   calculateSoilCost,
   getSoilAvailable,
   canAffordSoil,
@@ -22,7 +22,7 @@ const SEASONS: SproutSeason[] = ['1w', '2w', '1m', '3m', '6m', '1y']
 const ENVIRONMENTS: SproutEnvironment[] = ['fertile', 'firm', 'barren']
 
 // Unified log entry types
-type LogEntryType = 'sprout-start' | 'watering' | 'completion' | 'graft-origin'
+type LogEntryType = 'sprout-start' | 'watering' | 'shining' | 'completion' | 'graft-origin'
 
 type LogEntry = {
   type: LogEntryType
@@ -106,30 +106,23 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
   container.className = 'leaf-view'
 
   container.innerHTML = `
-    <div class="leaf-view-header">
-      <button type="button" class="leaf-back-btn">< back</button>
-      <div class="leaf-title-section">
-        <h2 class="leaf-title"></h2>
-        <p class="leaf-meta"></p>
+    <div class="leaf-view-box">
+      <button type="button" class="leaf-close-btn">× close</button>
+      <div class="leaf-view-body">
+        <div class="leaf-log"></div>
       </div>
-    </div>
-    <div class="leaf-view-body">
-      <div class="leaf-log"></div>
     </div>
   `
 
   mapPanel.append(container)
 
   // Element references
-  const backBtn = container.querySelector<HTMLButtonElement>('.leaf-back-btn')!
-  const titleEl = container.querySelector<HTMLHeadingElement>('.leaf-title')!
-  const metaEl = container.querySelector<HTMLParagraphElement>('.leaf-meta')!
+  const backBtn = container.querySelector<HTMLButtonElement>('.leaf-close-btn')!
   const logEl = container.querySelector<HTMLDivElement>('.leaf-log')!
 
   // State
   let currentTwigId: string | null = null
   let currentLeafId: string | null = null
-  let graftFromSproutId: string | null = null
   let selectedSeason: SproutSeason | null = null
   let selectedEnvironment: SproutEnvironment | null = null
 
@@ -142,7 +135,15 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
     if (!currentTwigId || !currentLeafId) return []
     const data = nodeState[currentTwigId]
     if (!data?.sprouts) return []
-    return getSproutsByLeaf(data.sprouts, currentLeafId)
+    const sprouts = getSproutsByLeaf(data.sprouts, currentLeafId)
+    console.log('[LEAF VIEW] getSprouts:', {
+      twigId: currentTwigId,
+      leafId: currentLeafId,
+      allSproutsCount: data.sprouts.length,
+      matchingSproutsCount: sprouts.length,
+      allLeafIds: data.sprouts.map(s => s.leafId),
+    })
+    return sprouts
   }
 
   // Build unified log from all sprouts and their events
@@ -190,6 +191,20 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
         })
       }
 
+      // Shining entries (sun journal for cultivated sprouts)
+      for (const sun of sprout.sunEntries || []) {
+        entries.push({
+          type: 'shining',
+          timestamp: sun.timestamp,
+          sproutId: sprout.id,
+          sproutTitle: sprout.title,
+          data: {
+            content: sun.content,
+            prompt: sun.prompt,
+          }
+        })
+      }
+
       // Completion event
       if (sprout.completedAt) {
         entries.push({
@@ -212,7 +227,7 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
     )
   }
 
-  function renderLogEntry(entry: LogEntry, sprouts: Sprout[]): string {
+  function renderLogEntry(entry: LogEntry): string {
     const timeStr = formatDateTime(entry.timestamp)
 
     switch (entry.type) {
@@ -240,8 +255,19 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
           </div>
         `
 
+      case 'shining':
+        return `
+          <div class="log-entry log-entry-shine" data-sprout-id="${entry.sproutId}">
+            <div class="log-entry-header">
+              <span class="log-entry-type">Shone</span>
+              <span class="log-entry-time">${timeStr}</span>
+            </div>
+            ${entry.data.prompt ? `<p class="log-entry-prompt">${entry.data.prompt}</p>` : ''}
+            <p class="log-entry-content">${entry.data.content}</p>
+          </div>
+        `
+
       case 'completion': {
-        const sprout = sprouts.find(s => s.id === entry.sproutId)
         const isCompleted = entry.data.isSuccess
         const emoji = getResultEmoji(entry.data.result || 1)
 
@@ -254,7 +280,6 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
             <p class="log-entry-title">${entry.sproutTitle}</p>
             <p class="log-entry-result">${emoji} ${entry.data.result}/5</p>
             ${entry.data.reflection ? `<p class="log-entry-reflection">"${entry.data.reflection}"</p>` : ''}
-            ${isCompleted && sprout ? `<button type="button" class="log-graft-btn" data-sprout-id="${entry.sproutId}">Graft</button>` : ''}
           </div>
         `
       }
@@ -275,23 +300,31 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
     }
   }
 
-  function renderGraftForm(): string {
+  function renderGraftForm(hasActiveSprout: boolean): string {
+    // Only show graft option if there's no active sprout on this leaf
+    if (hasActiveSprout) {
+      return ''
+    }
+
     return `
-      <div class="log-graft-form hidden">
-        <input type="text" class="graft-title-input" placeholder="Continue the journey..." maxlength="60" />
-        <div class="graft-selectors">
-          <div class="graft-season-selector">
-            ${SEASONS.map(s => `<button type="button" class="graft-season-btn" data-season="${s}">${s}</button>`).join('')}
+      <div class="log-graft-section">
+        <button type="button" class="log-graft-trigger">Graft</button>
+        <div class="log-graft-form hidden">
+          <input type="text" class="graft-title-input" placeholder="What's the new goal?" maxlength="60" />
+          <div class="graft-selectors">
+            <div class="graft-season-selector">
+              ${SEASONS.map(s => `<button type="button" class="graft-season-btn" data-season="${s}">${s}</button>`).join('')}
+            </div>
+            <div class="graft-env-selector">
+              ${ENVIRONMENTS.map(e => `<button type="button" class="graft-env-btn" data-env="${e}">${getEnvironmentLabel(e)}</button>`).join('')}
+            </div>
           </div>
-          <div class="graft-env-selector">
-            ${ENVIRONMENTS.map(e => `<button type="button" class="graft-env-btn" data-env="${e}">${getEnvironmentLabel(e)}</button>`).join('')}
-          </div>
-        </div>
-        <div class="graft-footer">
-          <span class="graft-soil-cost"></span>
-          <div class="graft-actions">
-            <button type="button" class="graft-cancel-btn">Cancel</button>
-            <button type="button" class="graft-confirm-btn" disabled>Graft</button>
+          <div class="graft-footer">
+            <span class="graft-soil-cost"></span>
+            <div class="graft-actions action-btn-group">
+              <button type="button" class="action-btn action-btn-passive action-btn-neutral graft-cancel-btn">Cancel</button>
+              <button type="button" class="action-btn action-btn-progress action-btn-twig graft-confirm-btn" disabled>Plant</button>
+            </div>
           </div>
         </div>
       </div>
@@ -300,41 +333,61 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
 
   function render(): void {
     const leaf = getLeaf()
-    if (!leaf) return
-
     const sprouts = getSprouts()
-    const active = getActiveSprouts(sprouts)
-    const logEntries = buildUnifiedLog(sprouts)
 
-    // Get title from the most recent sprout (the "top layer")
-    const sortedSprouts = [...sprouts].sort((a, b) =>
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    )
-    const topSprout = sortedSprouts[0]
-    titleEl.textContent = topSprout?.title || 'Untitled'
-    metaEl.textContent = `${logEntries.length} entries · ${active.length} growing`
+    // If no leaf exists but we have sprouts, auto-create the leaf
+    if (!leaf && sprouts.length > 0 && currentTwigId && currentLeafId) {
+      console.log('[LEAF VIEW] Auto-creating missing leaf:', currentLeafId)
+      // Create the leaf in state and persist
+      const data = nodeState[currentTwigId]
+      if (data) {
+        if (!data.leaves) data.leaves = []
+        data.leaves.push({
+          id: currentLeafId,
+          status: 'active',
+          createdAt: new Date().toISOString(),
+        })
+        saveState()
+      }
+    }
+
+    // If no sprouts, show empty state
+    if (sprouts.length === 0) {
+      logEl.innerHTML = '<p class="log-empty">No activity yet.</p>'
+      return
+    }
+
+    const logEntries = buildUnifiedLog(sprouts)
 
     if (logEntries.length === 0) {
       logEl.innerHTML = '<p class="log-empty">No activity yet.</p>'
       return
     }
 
-    // Render all log entries + graft form at the top
-    logEl.innerHTML = renderGraftForm() + logEntries.map(e => renderLogEntry(e, sprouts)).join('')
+    // Check if there's an active sprout on this leaf
+    const hasActiveSprout = sprouts.some(s => s.state === 'active')
+
+    // Render graft form at top (only if no active sprout) + all log entries
+    logEl.innerHTML = renderGraftForm(hasActiveSprout) + logEntries.map(e => renderLogEntry(e)).join('')
 
     wireLogEvents()
   }
 
   function wireLogEvents(): void {
-    const graftForm = logEl.querySelector<HTMLDivElement>('.log-graft-form')!
-    const graftTitleInput = logEl.querySelector<HTMLInputElement>('.graft-title-input')!
+    const graftTrigger = logEl.querySelector<HTMLButtonElement>('.log-graft-trigger')
+    const graftForm = logEl.querySelector<HTMLDivElement>('.log-graft-form')
+    const graftTitleInput = logEl.querySelector<HTMLInputElement>('.graft-title-input')
     const graftSeasonBtns = logEl.querySelectorAll<HTMLButtonElement>('.graft-season-btn')
     const graftEnvBtns = logEl.querySelectorAll<HTMLButtonElement>('.graft-env-btn')
-    const graftSoilCost = logEl.querySelector<HTMLSpanElement>('.graft-soil-cost')!
-    const graftCancelBtn = logEl.querySelector<HTMLButtonElement>('.graft-cancel-btn')!
-    const graftConfirmBtn = logEl.querySelector<HTMLButtonElement>('.graft-confirm-btn')!
+    const graftSoilCost = logEl.querySelector<HTMLSpanElement>('.graft-soil-cost')
+    const graftCancelBtn = logEl.querySelector<HTMLButtonElement>('.graft-cancel-btn')
+    const graftConfirmBtn = logEl.querySelector<HTMLButtonElement>('.graft-confirm-btn')
+
+    // Exit early if no graft section (has active sprout)
+    if (!graftForm || !graftTitleInput) return
 
     function updateGraftFormState(): void {
+      if (!graftTitleInput || !graftConfirmBtn || !graftSoilCost) return
       const title = graftTitleInput.value.trim()
       const hasAllFields = title && selectedSeason && selectedEnvironment
 
@@ -352,17 +405,27 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
     }
 
     function hideGraftForm(): void {
+      if (!graftForm || !graftTitleInput || !graftTrigger) return
       graftForm.classList.add('hidden')
+      graftTrigger.classList.remove('hidden')
       graftTitleInput.value = ''
       selectedSeason = null
       selectedEnvironment = null
-      graftFromSproutId = null
       graftSeasonBtns.forEach(btn => btn.classList.remove('is-selected'))
       graftEnvBtns.forEach(btn => btn.classList.remove('is-selected'))
     }
 
+    function showGraftForm(): void {
+      if (!graftForm || !graftTitleInput || !graftTrigger) return
+      graftTrigger.classList.add('hidden')
+      graftForm.classList.remove('hidden')
+      graftTitleInput.focus()
+      updateGraftFormState()
+    }
+
     function doGraft(): void {
-      if (!currentTwigId || !graftFromSproutId || !selectedSeason || !selectedEnvironment) return
+      if (!currentTwigId || !currentLeafId || !selectedSeason || !selectedEnvironment) return
+      if (!graftTitleInput) return
 
       const title = graftTitleInput.value.trim()
       if (!title) return
@@ -376,7 +439,7 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
       const endDate = getEndDate(selectedSeason)
       const now = new Date().toISOString()
 
-      graftSprout(currentTwigId, graftFromSproutId, {
+      graftFromLeaf(currentTwigId, currentLeafId, {
         title,
         season: selectedSeason,
         environment: selectedEnvironment,
@@ -387,24 +450,15 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
       })
 
       hideGraftForm()
-      render()
       callbacks.onSave()
+      // Close leaf view to show the new growing sprout in twig view
+      callbacks.onClose()
     }
 
-    // Graft button clicks (on completion entries)
-    logEl.querySelectorAll<HTMLButtonElement>('.log-graft-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sproutId = btn.dataset.sproutId
-        if (sproutId) {
-          graftFromSproutId = sproutId
-          graftForm.classList.remove('hidden')
-          graftTitleInput.focus()
-          updateGraftFormState()
-        }
-      })
-    })
+    // Graft trigger button (opens the form)
+    graftTrigger?.addEventListener('click', showGraftForm)
 
-    graftTitleInput.addEventListener('input', updateGraftFormState)
+    graftTitleInput?.addEventListener('input', updateGraftFormState)
 
     graftSeasonBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -424,8 +478,8 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
       })
     })
 
-    graftCancelBtn.addEventListener('click', hideGraftForm)
-    graftConfirmBtn.addEventListener('click', doGraft)
+    graftCancelBtn?.addEventListener('click', hideGraftForm)
+    graftConfirmBtn?.addEventListener('click', doGraft)
   }
 
   // Event handlers
@@ -443,8 +497,10 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
       e.preventDefault()
       e.stopImmediatePropagation()
       const graftForm = logEl.querySelector<HTMLDivElement>('.log-graft-form')
+      const graftTrigger = logEl.querySelector<HTMLButtonElement>('.log-graft-trigger')
       if (graftForm && !graftForm.classList.contains('hidden')) {
         graftForm.classList.add('hidden')
+        graftTrigger?.classList.remove('hidden')
       } else {
         callbacks.onClose()
       }
@@ -453,14 +509,25 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
 
   return {
     container,
-    open(leafId: string, twigId: string, _branchIndex: number) {
+    open(leafId: string, twigId: string, _branchIndex: number, startWithGraftForm?: boolean) {
       currentLeafId = leafId
       currentTwigId = twigId
-      graftFromSproutId = null
       selectedSeason = null
       selectedEnvironment = null
       render()
       container.classList.add('is-open')
+
+      // If starting with graft, show the form immediately
+      if (startWithGraftForm) {
+        const graftForm = logEl.querySelector<HTMLDivElement>('.log-graft-form')
+        const graftTrigger = logEl.querySelector<HTMLButtonElement>('.log-graft-trigger')
+        const graftTitleInput = logEl.querySelector<HTMLInputElement>('.graft-title-input')
+        if (graftForm && graftTitleInput) {
+          graftTrigger?.classList.add('hidden')
+          graftForm.classList.remove('hidden')
+          graftTitleInput.focus()
+        }
+      }
     },
     close() {
       container.classList.remove('is-open')
