@@ -356,7 +356,7 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
             </div>
             <div class="sprout-growing-footer">
               <p class="sprout-days-remaining">${daysLeft} day${daysLeft !== 1 ? 's' : ''} remaining</p>
-              <button type="button" class="sprout-action-btn sprout-water-btn" ${watered ? 'disabled' : ''}>${watered ? 'n/a' : 'Water'}</button>
+              <button type="button" class="action-btn action-btn-passive action-btn-water sprout-water-btn" ${watered ? 'disabled' : ''}>${watered ? 'n/a' : 'Water'}</button>
             </div>
           </div>
         `}

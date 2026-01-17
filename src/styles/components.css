@@ -2433,37 +2433,15 @@
   text-decoration-color: var(--ink);
 }
 
+/* Sidebar water button - hover reveal behavior */
 .sprout-water-btn {
   margin-left: auto;
-  padding: var(--space-1) var(--space-2);
-  background: rgba(70, 130, 180, 0.15);
-  border: 1px solid var(--water);
-  font-family: var(--font-ascii);
-  font-size: var(--text-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--water);
-  cursor: pointer;
   opacity: 0;
   transition: opacity 100ms ease, background 100ms ease;
 }
 
 .sprout-item:hover .sprout-water-btn {
   opacity: 1;
-}
-
-.sprout-water-btn:hover {
-  background: rgba(70, 130, 180, 0.3);
-}
-
-.sprout-water-btn.is-ready {
-  background: rgba(100, 170, 100, 0.15);
-  border-color: var(--twig);
-  color: var(--twig);
-}
-
-.sprout-water-btn.is-ready:hover {
-  background: rgba(100, 170, 100, 0.3);
 }
 
 /* === Water Journaling Dialog === */
