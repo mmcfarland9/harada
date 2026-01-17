@@ -146,10 +146,6 @@
 .app-actions { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; }
 
 .meter-group { display: flex; gap: var(--space-2); margin-left: auto; align-items: center; }
-.today-indicator { font-family: var(--font-ascii); font-size: var(--text-xs); color: var(--ink-faint); padding: var(--space-1) var(--space-2); border: 1px solid var(--border); white-space: nowrap; }
-.today-indicator[data-tone="ready"] { border-color: var(--leaf); color: var(--leaf); }
-.today-indicator[data-tone="water"] { border-color: var(--water); color: var(--water); }
-.today-indicator[data-tone="success"] { border-color: var(--ink-faint); color: var(--ink-faint); }
 .app-body { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 1.5rem; align-items: start; flex: 1; min-height: 0; }
 .map-panel { display: flex; flex-direction: column; gap: 1rem; align-items: center; margin-top: 8px; position: relative; flex: 1; min-height: 0; }
 .debug-toggle { position: fixed; bottom: 1rem; right: 1rem; display: none; align-items: center; gap: var(--space-2); font-size: var(--text-sm); color: var(--ink-faint); cursor: pointer; user-select: none; z-index: 100; }

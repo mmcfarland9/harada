@@ -22,7 +22,6 @@ import { initWaterDialog } from './features/water-dialog'
 import { initShineDialog } from './features/shine-dialog'
 import { initSproutsDialog } from './features/sprouts-dialog'
 import { STATUS_DEFAULT_MESSAGE } from './constants'
-import { updateTodayIndicator } from './features/today'
 
 const app = document.querySelector<HTMLDivElement>('#app')
 if (!app) {
@@ -35,7 +34,6 @@ const navCallbacks = {
     updateStats(ctx)
     positionNodes(ctx)
     updateStatusMeta(ctx.elements, true)
-    updateTodayIndicator(ctx)
   },
 }
 
@@ -363,7 +361,6 @@ updateStatusMeta(ctx.elements)
 updateSoilMeter()
 updateWaterMeter()
 shineDialogApi.updateSunMeter()
-updateTodayIndicator(ctx)
 
 let resizeId = 0
 const resizeObserver = new ResizeObserver(() => {

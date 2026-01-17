@@ -156,14 +156,10 @@ export function buildApp(
   sunTrack.append(sunFill)
   sunMeter.append(sunLabel, sunTrack, sunValue)
 
-  // Today indicator (shows ready/water counts)
-  const todayIndicator = document.createElement('span')
-  todayIndicator.className = 'today-indicator hidden'
-
   // Meter group for visual cohesion
   const meterGroup = document.createElement('div')
   meterGroup.className = 'meter-group'
-  meterGroup.append(soilMeter, waterMeter, sunMeter, todayIndicator)
+  meterGroup.append(soilMeter, waterMeter, sunMeter)
 
   header.append(actions, meterGroup, logo, importInput)
 
