@@ -3,89 +3,65 @@
 .app-header { display: flex; justify-content: flex-start; align-items: flex-start; gap: 1rem; }
 .header-logo { width: 108px; height: 108px; object-fit: contain; margin-left: auto; }
 
-/* === Global Soil Meter === */
+/* === Resource Meters (unified) === */
+.resource-meter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-family: var(--font-ascii);
+  border: 1px solid var(--meter-color, var(--border));
+  background: var(--meter-bg, transparent);
+}
+
+.resource-meter-label {
+  font-size: var(--text-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--meter-color, var(--ink-faint));
+  white-space: nowrap;
+}
+
+.resource-meter-track {
+  width: 80px;
+  height: 6px;
+  background: var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+}
+
+.resource-meter-fill {
+  height: 100%;
+  background: var(--meter-color, var(--ink));
+  opacity: 0.7;
+  transition: width 400ms ease;
+}
+
+.resource-meter-value {
+  font-size: var(--text-xs);
+  color: var(--meter-color, var(--ink-faint));
+  min-width: 3ch;
+  text-align: right;
+}
+
+/* Meter color variants */
 .soil-meter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.6rem;
-  background: rgba(139, 90, 43, 0.06);
-  border: 1px solid rgba(139, 90, 43, 0.3);
-  font-family: var(--font-ascii);
+  --meter-color: var(--wood);
+  --meter-bg: rgba(107, 68, 35, 0.04);
   margin-left: auto;
-  margin-right: 1rem;
+  margin-right: var(--space-4);
 }
 
-.soil-meter-label {
-  font-size: calc(var(--char) * 0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--wood);
-  white-space: nowrap;
-}
-
-.soil-meter-track {
-  width: 80px;
-  height: 8px;
-  background: rgba(139, 90, 43, 0.1);
-  border: 1px solid rgba(139, 90, 43, 0.2);
-  overflow: hidden;
-}
-
-.soil-meter-fill {
-  height: 100%;
-  background: var(--wood);
-  opacity: 0.7;
-  transition: width 400ms ease;
-}
-
-.soil-meter-value {
-  font-size: calc(var(--char) * 0.55);
-  color: var(--wood);
-  min-width: 2.5rem;
-  text-align: right;
-}
-
-/* === Global Water Meter === */
 .water-meter {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.35rem 0.6rem;
-  background: rgba(70, 130, 180, 0.06);
-  border: 1px solid rgba(70, 130, 180, 0.3);
-  font-family: var(--font-ascii);
-  margin-right: 1rem;
+  --meter-color: var(--water);
+  --meter-bg: rgba(70, 130, 180, 0.04);
+  margin-right: var(--space-4);
 }
 
-.water-meter-label {
-  font-size: calc(var(--char) * 0.6);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: steelblue;
-  white-space: nowrap;
-}
-
-.water-meter-track {
-  width: 80px;
-  height: 8px;
-  background: rgba(70, 130, 180, 0.1);
-  border: 1px solid rgba(70, 130, 180, 0.2);
-  overflow: hidden;
-}
-
-.water-meter-fill {
-  height: 100%;
-  background: steelblue;
-  opacity: 0.7;
-  transition: width 400ms ease;
-}
-
-.water-meter-value {
-  font-size: calc(var(--char) * 0.55);
-  color: steelblue;
-  min-width: 2.5rem;
-  text-align: right;
+.sun-meter {
+  --meter-color: var(--sun);
+  --meter-bg: rgba(212, 160, 0, 0.04);
+  margin-right: var(--space-4);
 }
 
 /* === Future Ideas Folder === */

@@ -94,23 +94,23 @@ export function buildApp(
 
   // Global Soil meter
   const soilMeter = document.createElement('div')
-  soilMeter.className = 'soil-meter'
+  soilMeter.className = 'resource-meter soil-meter'
 
   const soilLabel = document.createElement('span')
-  soilLabel.className = 'soil-meter-label'
+  soilLabel.className = 'resource-meter-label'
   soilLabel.textContent = 'Soil:'
 
   const soilTrack = document.createElement('div')
-  soilTrack.className = 'soil-meter-track'
+  soilTrack.className = 'resource-meter-track'
 
   const soilFill = document.createElement('div')
-  soilFill.className = 'soil-meter-fill'
+  soilFill.className = 'resource-meter-fill'
   const initialAvailable = getSoilAvailable()
   const initialCapacity = getSoilCapacity()
   soilFill.style.width = `${(initialAvailable / initialCapacity) * 100}%`
 
   const soilValue = document.createElement('span')
-  soilValue.className = 'soil-meter-value'
+  soilValue.className = 'resource-meter-value'
   soilValue.textContent = `${initialAvailable}/${initialCapacity}`
 
   soilTrack.append(soilFill)
@@ -118,29 +118,51 @@ export function buildApp(
 
   // Global Water meter
   const waterMeter = document.createElement('div')
-  waterMeter.className = 'water-meter'
+  waterMeter.className = 'resource-meter water-meter'
 
   const waterLabel = document.createElement('span')
-  waterLabel.className = 'water-meter-label'
+  waterLabel.className = 'resource-meter-label'
   waterLabel.textContent = 'Water:'
 
   const waterTrack = document.createElement('div')
-  waterTrack.className = 'water-meter-track'
+  waterTrack.className = 'resource-meter-track'
 
   const waterFill = document.createElement('div')
-  waterFill.className = 'water-meter-fill'
+  waterFill.className = 'resource-meter-fill'
   const initialWaterAvailable = getWaterAvailable()
   const initialWaterCapacity = getWaterCapacity()
   waterFill.style.width = `${(initialWaterAvailable / initialWaterCapacity) * 100}%`
 
   const waterValue = document.createElement('span')
-  waterValue.className = 'water-meter-value'
+  waterValue.className = 'resource-meter-value'
   waterValue.textContent = `${initialWaterAvailable}/${initialWaterCapacity}`
 
   waterTrack.append(waterFill)
   waterMeter.append(waterLabel, waterTrack, waterValue)
 
-  header.append(actions, soilMeter, waterMeter, logo, importInput)
+  // Global Sun meter (visual only for now)
+  const sunMeter = document.createElement('div')
+  sunMeter.className = 'resource-meter sun-meter'
+
+  const sunLabel = document.createElement('span')
+  sunLabel.className = 'resource-meter-label'
+  sunLabel.textContent = 'Sun:'
+
+  const sunTrack = document.createElement('div')
+  sunTrack.className = 'resource-meter-track'
+
+  const sunFill = document.createElement('div')
+  sunFill.className = 'resource-meter-fill'
+  sunFill.style.width = '100%' // 3/3
+
+  const sunValue = document.createElement('span')
+  sunValue.className = 'resource-meter-value'
+  sunValue.textContent = '3/3'
+
+  sunTrack.append(sunFill)
+  sunMeter.append(sunLabel, sunTrack, sunValue)
+
+  header.append(actions, soilMeter, waterMeter, sunMeter, logo, importInput)
 
   // Future Ideas Folder - contains archived encyclopedia features
   const futureIdeasFolder = document.createElement('div')
@@ -305,8 +327,8 @@ export function buildApp(
   const debugSoilResetBtn = document.createElement('button')
   debugSoilResetBtn.type = 'button'
   debugSoilResetBtn.className = 'debug-clock-btn'
-  debugSoilResetBtn.title = 'Reset soil to default capacity'
-  debugSoilResetBtn.textContent = 'Reset Soil'
+  debugSoilResetBtn.title = 'Reset all resources to default'
+  debugSoilResetBtn.textContent = 'Reset Resources'
   const debugClearSproutsBtn = document.createElement('button')
   debugClearSproutsBtn.type = 'button'
   debugClearSproutsBtn.className = 'debug-clock-btn'
@@ -1724,7 +1746,28 @@ export function buildApp(
     </div>
   `
 
-  shell.append(header, body, sproutsDialog, gardenGuideDialog, waterDialog, futureIdeasFolder)
+  // Shine journaling dialog (for cultivated sprouts)
+  const shineDialog = document.createElement('div')
+  shineDialog.className = 'shine-dialog hidden'
+  shineDialog.innerHTML = `
+    <div class="shine-dialog-box">
+      <div class="shine-dialog-header">
+        <h2 class="shine-dialog-title">Shine Light</h2>
+        <button type="button" class="shine-dialog-close">×</button>
+      </div>
+      <div class="shine-dialog-body">
+        <p class="shine-dialog-sprout-title"></p>
+        <p class="shine-dialog-sprout-meta"></p>
+        <textarea class="shine-dialog-journal" placeholder="Reflect on this journey. What did you learn? Where might it lead next?"></textarea>
+        <div class="shine-dialog-actions">
+          <button type="button" class="shine-dialog-cancel">Cancel</button>
+          <button type="button" class="shine-dialog-save">Radiate</button>
+        </div>
+      </div>
+    </div>
+  `
+
+  shell.append(header, body, sproutsDialog, gardenGuideDialog, waterDialog, shineDialog, futureIdeasFolder)
   appRoot.append(shell)
 
   const elements: AppElements = {
@@ -1769,6 +1812,15 @@ export function buildApp(
     soilMeterValue: soilValue,
     waterMeterFill: waterFill,
     waterMeterValue: waterValue,
+    sunMeterFill: sunFill,
+    sunMeterValue: sunValue,
+    shineDialog,
+    shineDialogTitle: shineDialog.querySelector<HTMLParagraphElement>('.shine-dialog-sprout-title')!,
+    shineDialogMeta: shineDialog.querySelector<HTMLParagraphElement>('.shine-dialog-sprout-meta')!,
+    shineDialogJournal: shineDialog.querySelector<HTMLTextAreaElement>('.shine-dialog-journal')!,
+    shineDialogClose: shineDialog.querySelector<HTMLButtonElement>('.shine-dialog-close')!,
+    shineDialogCancel: shineDialog.querySelector<HTMLButtonElement>('.shine-dialog-cancel')!,
+    shineDialogSave: shineDialog.querySelector<HTMLButtonElement>('.shine-dialog-save')!,
   }
 
   // Wire up button handlers (will be connected to features in main.ts)
