@@ -162,7 +162,12 @@ export function buildApp(
   sunTrack.append(sunFill)
   sunMeter.append(sunLabel, sunTrack, sunValue)
 
-  header.append(actions, soilMeter, waterMeter, sunMeter, logo, importInput)
+  // Meter group for visual cohesion
+  const meterGroup = document.createElement('div')
+  meterGroup.className = 'meter-group'
+  meterGroup.append(soilMeter, waterMeter, sunMeter)
+
+  header.append(actions, meterGroup, logo, importInput)
 
   // Future Ideas Folder - contains archived encyclopedia features
   const futureIdeasFolder = document.createElement('div')
