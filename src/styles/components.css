@@ -240,6 +240,94 @@
   font-size: var(--text-base);
 }
 
+/* === Action Button System (unified) ===
+ * Split layout: passive actions left, progress actions right
+ * All action buttons use same sizing for uniformity
+ */
+
+.action-btn {
+  padding: var(--space-2) var(--space-3);
+  font-family: var(--font-ascii);
+  font-size: var(--text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  border: 1px solid;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.action-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Passive (left side) - outline style */
+.action-btn-passive {
+  background: transparent;
+}
+
+.action-btn-passive:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* Progress (right side) - subtle fill style */
+.action-btn-progress {
+  background: rgba(var(--btn-rgb), 0.15);
+}
+
+.action-btn-progress:hover:not(:disabled) {
+  background: rgba(var(--btn-rgb), 0.25);
+}
+
+/* Color variants */
+.action-btn-neutral {
+  border-color: var(--border);
+  color: var(--ink-faint);
+  --btn-rgb: 0, 0, 0;
+}
+
+.action-btn-water {
+  border-color: var(--water);
+  color: var(--water);
+  --btn-rgb: 70, 130, 180;
+}
+
+.action-btn-sun {
+  border-color: var(--sun);
+  color: var(--sun);
+  --btn-rgb: 212, 160, 0;
+}
+
+.action-btn-twig {
+  border-color: var(--twig);
+  color: var(--twig);
+  --btn-rgb: 58, 107, 74;
+}
+
+.action-btn-error {
+  border-color: var(--error-tone);
+  color: var(--error-tone);
+  --btn-rgb: 138, 74, 58;
+}
+
+/* Container for split button layout */
+.action-btn-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* When only one button, position by type */
+.action-btn-group-left {
+  justify-content: flex-start;
+}
+
+.action-btn-group-right {
+  justify-content: flex-end;
+}
+
 /* === Legacy Buttons === */
 
 /* Legacy aliases - use new button system */
