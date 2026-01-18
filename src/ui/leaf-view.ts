@@ -22,7 +22,7 @@ const SEASONS: SproutSeason[] = ['1w', '2w', '1m', '3m', '6m', '1y']
 const ENVIRONMENTS: SproutEnvironment[] = ['fertile', 'firm', 'barren']
 
 // Unified log entry types
-type LogEntryType = 'sprout-start' | 'watering' | 'shining' | 'completion' | 'graft-origin'
+type LogEntryType = 'sprout-start' | 'watering' | 'completion' | 'graft-origin'
 
 type LogEntry = {
   type: LogEntryType
@@ -191,20 +191,6 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
         })
       }
 
-      // Shining entries (sun journal for cultivated sprouts)
-      for (const sun of sprout.sunEntries || []) {
-        entries.push({
-          type: 'shining',
-          timestamp: sun.timestamp,
-          sproutId: sprout.id,
-          sproutTitle: sprout.title,
-          data: {
-            content: sun.content,
-            prompt: sun.prompt,
-          }
-        })
-      }
-
       // Completion event
       if (sprout.completedAt) {
         entries.push({
@@ -248,18 +234,6 @@ export function buildLeafView(mapPanel: HTMLElement, callbacks: LeafViewCallback
           <div class="log-entry log-entry-water" data-sprout-id="${entry.sproutId}">
             <div class="log-entry-header">
               <span class="log-entry-type">Watered</span>
-              <span class="log-entry-time">${timeStr}</span>
-            </div>
-            ${entry.data.prompt ? `<p class="log-entry-prompt">${entry.data.prompt}</p>` : ''}
-            <p class="log-entry-content">${entry.data.content}</p>
-          </div>
-        `
-
-      case 'shining':
-        return `
-          <div class="log-entry log-entry-shine" data-sprout-id="${entry.sproutId}">
-            <div class="log-entry-header">
-              <span class="log-entry-type">Shone</span>
               <span class="log-entry-time">${timeStr}</span>
             </div>
             ${entry.data.prompt ? `<p class="log-entry-prompt">${entry.data.prompt}</p>` : ''}
