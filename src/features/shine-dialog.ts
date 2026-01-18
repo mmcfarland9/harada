@@ -1,6 +1,6 @@
 import type { AppContext } from '../types'
 import sunPromptsRaw from '../assets/sun-prompts.txt?raw'
-import { nodeState, getDebugDate, spendSun, canAffordSun, addSunEntry, getSunAvailable, getSunCapacity } from '../state'
+import { spendSun, canAffordSun, addSunEntry, getSunAvailable, getSunCapacity, wasShoneThisWeek } from '../state'
 
 export type ShineDialogCallbacks = {
   onSunMeterChange: () => void
@@ -31,28 +31,6 @@ function getRandomSunPrompt(): string {
   return prompt
 }
 
-function getWeekString(date: Date): string {
-  const d = new Date(date)
-  d.setHours(0, 0, 0, 0)
-  d.setDate(d.getDate() + 4 - (d.getDay() || 7))
-  const yearStart = new Date(d.getFullYear(), 0, 1)
-  const weekNo = Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7)
-  return `${d.getFullYear()}-W${weekNo}`
-}
-
-function wasShoneThisWeek(twigId: string, sproutId: string): boolean {
-  const data = nodeState[twigId]
-  if (!data?.sprouts) return false
-  const sprout = data.sprouts.find(s => s.id === sproutId)
-  if (!sprout?.sunEntries?.length) return false
-
-  const thisWeek = getWeekString(getDebugDate())
-  return sprout.sunEntries.some(entry => {
-    const entryWeek = getWeekString(new Date(entry.timestamp))
-    return entryWeek === thisWeek
-  })
-}
-
 export type ShineDialogApi = {
   openShineDialog: (sprout: { id: string; title: string; twigId: string; twigLabel: string }) => void
   updateSunMeter: () => void
@@ -80,9 +58,9 @@ export function initShineDialog(
   }
 
   function openShineDialog(sprout: { id: string; title: string; twigId: string; twigLabel: string }) {
-    // Check if already shone this week (sun is for weekly planning/reflection)
-    if (wasShoneThisWeek(sprout.twigId, sprout.id)) {
-      callbacks.onSetStatus('Already planned this week! Come back next week.', 'warning')
+    // Check if already shone this week (sun is for weekly planning/reflection on the TWIG)
+    if (wasShoneThisWeek(sprout.twigId)) {
+      callbacks.onSetStatus('Already reflected on this facet this week! Come back next week.', 'warning')
       return
     }
 
@@ -127,10 +105,10 @@ export function initShineDialog(
       spendSun()
       updateSunMeter()
 
-      // Save sun entry to sprout data
+      // Save sun entry to TWIG data (twig-level reflection)
       const prompt = shineDialogJournal.placeholder
-      addSunEntry(currentShiningSprout.twigId, currentShiningSprout.id, entry, prompt)
-      callbacks.onSetStatus('Light radiated on this journey!', 'info')
+      addSunEntry(currentShiningSprout.twigId, entry, prompt)
+      callbacks.onSetStatus('Light radiated on this life facet!', 'info')
     }
 
     closeShineDialog()

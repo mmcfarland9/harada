@@ -1,4 +1,4 @@
-import type { NodeData, ViewMode, Sprout, SproutState, SproutSeason, SproutEnvironment, SoilState, WaterState, SunState, Leaf } from './types'
+import type { NodeData, ViewMode, Sprout, SproutState, SproutSeason, SproutEnvironment, SoilState, WaterState, SunState, SunEntry, Leaf } from './types'
 import { STORAGE_KEY } from './constants'
 import presetData from '../assets/trunk-map-preset.json'
 
@@ -71,9 +71,7 @@ function capJournalEntries(sprout: Sprout): void {
     // Keep most recent entries, remove oldest
     sprout.waterEntries = sprout.waterEntries.slice(-MAX_WATER_ENTRIES_PER_SPROUT)
   }
-  if (sprout.sunEntries && sprout.sunEntries.length > MAX_SUN_ENTRIES_PER_SPROUT) {
-    sprout.sunEntries = sprout.sunEntries.slice(-MAX_SUN_ENTRIES_PER_SPROUT)
-  }
+  // Sun entries are now at twig level, not sprout level
 }
 
 // --- Resource System (Unified) ---
@@ -89,11 +87,21 @@ const LEGACY_SUN_KEY = 'trunk-sun-v1'
 // --- Soil System ---
 // Soil represents limited focus/energy. Start small, grow through success.
 // Philosophy: Earn your way to bigger goals through consistent small wins.
+//
+// === THE BONSAI MODEL ===
+// Capacity grows slowly over years, with diminishing returns as you approach max.
+// Max capacity (100) is a lifetime goal - essentially unreachable.
+// See docs/progression-system.md for full math and examples.
 
 const DEFAULT_SOIL_CAPACITY = 4  // Start humble - room for a few 1-week goals
+const MAX_SOIL_CAPACITY = 100    // Lifetime ceiling - mythical to achieve
+const MINIMUM_SOIL = 1           // Floor - always able to plant a humble 1w goal
 
-// Recovery rate per watering (daily engagement is rewarded)
-const SOIL_RECOVERY_PER_WATER = 0.25  // 3 waters/day = 0.75 soil/day = ~5/week
+// Recovery rates (slow, bonsai-style)
+// Water: Quick daily engagement with active sprouts
+// Sun: Thoughtful weekly reflection on life facets (twigs)
+const SOIL_RECOVERY_PER_WATER = 0.1   // 3x/day = 0.3/day = ~2.1/week
+const SOIL_RECOVERY_PER_SUN = 0.5     // 1x/week - reflection is valuable
 
 // Base costs by season (longer goals require building up capacity)
 const SEASON_BASE_COST: Record<SproutSeason, number> = {
@@ -106,44 +114,92 @@ const SEASON_BASE_COST: Record<SproutSeason, number> = {
 }
 
 // Environment multipliers (harder = costs more)
-const ENVIRONMENT_MULTIPLIER: Record<SproutEnvironment, number> = {
+// - Fertile: "I know how to do this" - comfort zone, support, experience
+// - Firm: "This will take effort" - stretching, obstacles, learning required
+// - Barren: "This is genuinely hard" - new skill, no safety net, real risk
+const ENVIRONMENT_COST_MULT: Record<SproutEnvironment, number> = {
   fertile: 1,    // Normal cost
   firm: 1.5,     // 50% more expensive
   barren: 2,     // Double cost (but double reward)
 }
 
-// Capacity rewards for successful completion (environment component)
-const ENVIRONMENT_REWARD: Record<SproutEnvironment, number> = {
-  fertile: 0,    // Safe mode - no growth
-  firm: 0.5,     // Small capacity boost
-  barren: 1,     // Significant capacity boost
+// === CAPACITY REWARD SYSTEM ===
+// Formula: base × environment × result × diminishing
+// All factors multiply together for final reward.
+
+// Base rewards by season - scaled so per-week rate is roughly equal
+// with slight bonus for longer commitments (~40% better from 1w→1y)
+const SEASON_BASE_REWARD: Record<SproutSeason, number> = {
+  '1w': 0.12,   // ~0.12/week
+  '2w': 0.26,   // ~0.13/week
+  '1m': 0.56,   // ~0.14/week
+  '3m': 1.95,   // ~0.15/week
+  '6m': 4.16,   // ~0.16/week
+  '1y': 8.84,   // ~0.17/week
 }
 
-// Capacity rewards for successful completion (season component)
-// Longer commitments = bigger rewards when you follow through
-const SEASON_REWARD: Record<SproutSeason, number> = {
-  '1w': 0,       // Quick wins don't grow capacity
-  '2w': 0.25,    // Slight boost
-  '1m': 0.5,     // Meaningful commitment
-  '3m': 1,       // Real dedication
-  '6m': 1.5,     // Major achievement
-  '1y': 2,       // Life-changing
+// Environment reward multiplier (harder = faster growth)
+const ENVIRONMENT_REWARD_MULT: Record<SproutEnvironment, number> = {
+  fertile: 1.0,  // Safe path - normal growth
+  firm: 1.4,     // Some friction - modest boost
+  barren: 2.0,   // Real challenge - double growth
+}
+
+// Result multiplier (1-5 scale from sprout completion)
+// Every honest effort grows you, excellence shines
+const RESULT_REWARD_MULT: Record<number, number> = {
+  1: 0.2,  // You showed up - tiny growth
+  2: 0.4,  // Partial effort
+  3: 0.6,  // Solid, honest work
+  4: 0.8,  // Strong execution
+  5: 1.0,  // Excellence - full reward
 }
 
 export function calculateSoilCost(season: SproutSeason, environment: SproutEnvironment): number {
   const base = SEASON_BASE_COST[season]
-  const multiplier = ENVIRONMENT_MULTIPLIER[environment]
+  const multiplier = ENVIRONMENT_COST_MULT[environment]
   return Math.ceil(base * multiplier)
 }
 
-// Total capacity reward = environment difficulty + season length
-export function getCapacityReward(environment: SproutEnvironment, season: SproutSeason): number {
-  return ENVIRONMENT_REWARD[environment] + SEASON_REWARD[season]
+// Calculate capacity reward with diminishing returns
+// As you approach MAX_SOIL_CAPACITY, growth slows toward zero
+export function calculateCapacityReward(
+  season: SproutSeason,
+  environment: SproutEnvironment,
+  result: number,
+  currentCapacity: number
+): number {
+  const base = SEASON_BASE_REWARD[season]
+  const envMult = ENVIRONMENT_REWARD_MULT[environment]
+  const resultMult = RESULT_REWARD_MULT[result] ?? RESULT_REWARD_MULT[3] // Default to 0.6
+
+  // Logistic diminishing returns - growth slows as you approach max
+  const diminishingFactor = Math.max(0, 1 - (currentCapacity / MAX_SOIL_CAPACITY))
+
+  return base * envMult * resultMult * diminishingFactor
 }
 
-// How much soil is recovered per watering
+// Legacy function for backwards compatibility - returns base reward without diminishing
+export function getCapacityReward(environment: SproutEnvironment, season: SproutSeason): number {
+  return SEASON_BASE_REWARD[season] * ENVIRONMENT_REWARD_MULT[environment]
+}
+
+export function getMaxSoilCapacity(): number {
+  return MAX_SOIL_CAPACITY
+}
+
+export function getMinimumSoil(): number {
+  return MINIMUM_SOIL
+}
+
+// How much soil is recovered per watering (sprout-level, daily)
 export function getSoilRecoveryRate(): number {
   return SOIL_RECOVERY_PER_WATER
+}
+
+// How much soil is recovered per sun shine (twig-level, weekly)
+export function getSunRecoveryRate(): number {
+  return SOIL_RECOVERY_PER_SUN
 }
 
 // --- Unified Resource State ---
@@ -256,8 +312,18 @@ export function spendSoil(cost: number): boolean {
   return true
 }
 
+// Ensure soil never stays below minimum (called periodically or on recovery)
+export function enforceMinimumSoil(): void {
+  if (soilState.available < MINIMUM_SOIL) {
+    soilState.available = MINIMUM_SOIL
+    saveResourceState()
+  }
+}
+
 export function recoverSoil(amount: number, capacityBonus: number = 0): void {
   soilState.available = Math.min(soilState.available + amount, soilState.capacity + capacityBonus)
+  // Enforce minimum floor
+  soilState.available = Math.max(soilState.available, MINIMUM_SOIL)
   if (capacityBonus > 0) {
     soilState.capacity += capacityBonus
   }
@@ -267,6 +333,8 @@ export function recoverSoil(amount: number, capacityBonus: number = 0): void {
 export function recoverPartialSoil(amount: number, fraction: number): void {
   const recovered = Math.floor(amount * fraction)
   soilState.available = Math.min(soilState.available + recovered, soilState.capacity)
+  // Enforce minimum floor
+  soilState.available = Math.max(soilState.available, MINIMUM_SOIL)
   saveResourceState()
 }
 
@@ -477,38 +545,50 @@ export function addWaterEntry(
   return true
 }
 
-// Add a sun entry (shine) to a cultivated sprout
+// Add a sun entry (shine) to a TWIG (not sprout)
+// Sun is for philosophical reflection on life facets
 export function addSunEntry(
   twigId: string,
-  sproutId: string,
   content: string,
   prompt?: string
-): boolean {
+): void {
   const data = nodeState[twigId]
-  if (!data?.sprouts) return false
-
-  const sprout = data.sprouts.find(s => s.id === sproutId)
-  if (!sprout) return false
-
-  if (!sprout.sunEntries) {
-    sprout.sunEntries = []
+  if (!data) {
+    console.warn(`Cannot add sun entry: twig ${twigId} not found`)
+    return
   }
 
-  sprout.sunEntries.push({
-    timestamp: new Date().toISOString(),
+  if (!data.sunEntries) {
+    data.sunEntries = []
+  }
+
+  data.sunEntries.push({
+    timestamp: getDebugDate().toISOString(),
     content,
     prompt,
   })
 
-  console.log('[SHINE] Entry added:', {
-    twigId,
-    sproutId,
-    sproutTitle: sprout.title,
-    sunEntriesCount: sprout.sunEntries.length,
-  })
+  // Cap sun entries to prevent unbounded growth (52 weeks = 1 year)
+  if (data.sunEntries.length > MAX_SUN_ENTRIES_PER_SPROUT) {
+    data.sunEntries = data.sunEntries.slice(-MAX_SUN_ENTRIES_PER_SPROUT)
+  }
 
   saveState()
-  return true
+}
+
+export function getTwigSunEntries(twigId: string): SunEntry[] {
+  return nodeState[twigId]?.sunEntries || []
+}
+
+export function wasShoneThisWeek(twigId: string): boolean {
+  const entries = getTwigSunEntries(twigId)
+  if (!entries.length) return false
+
+  const thisWeek = getWeekString(getDebugDate())
+  return entries.some(entry => {
+    const entryWeek = getWeekString(new Date(entry.timestamp))
+    return entryWeek === thisWeek
+  })
 }
 
 // --- Grafting ---
