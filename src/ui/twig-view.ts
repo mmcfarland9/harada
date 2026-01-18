@@ -17,6 +17,7 @@ import {
   getTwigLeaves,
   getSproutsByLeaf,
   createLeaf,
+  wasShoneThisWeek,
 } from '../state'
 
 export type TwigViewCallbacks = {
@@ -26,7 +27,7 @@ export type TwigViewCallbacks = {
   onNavigate?: (direction: 'prev' | 'next') => HTMLButtonElement | null
   onOpenLeaf?: (leafId: string, twigId: string, branchIndex: number) => void
   onWaterClick?: (sprout: { id: string, title: string, twigId: string, twigLabel: string, season: string }) => void
-  onShineClick?: (sprout: { id: string, title: string, twigId: string, twigLabel: string }) => void
+  onShineClick?: (twig: { twigId: string, twigLabel: string }) => void
   onGraftClick?: (leafId: string, twigId: string, branchIndex: number) => void
 }
 
@@ -114,12 +115,6 @@ function wasWateredToday(sprout: Sprout): boolean {
   return sprout.waterEntries.some(entry => entry.timestamp.split('T')[0] === today)
 }
 
-function wasShoneToday(sprout: Sprout): boolean {
-  if (!sprout.sunEntries?.length) return false
-  const today = getDebugDate().toISOString().split('T')[0]
-  return sprout.sunEntries.some(entry => entry.timestamp.split('T')[0] === today)
-}
-
 export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallbacks): TwigViewApi {
   const container = document.createElement('div')
   container.className = 'twig-view hidden'
@@ -129,6 +124,9 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
       <div class="twig-title-section">
         <input type="text" class="twig-title-input" readonly tabindex="-1" />
         <textarea class="twig-note-input" readonly tabindex="-1" rows="1"></textarea>
+      </div>
+      <div class="twig-actions">
+        <button type="button" class="action-btn action-btn-passive action-btn-sun twig-shine-btn">Shine</button>
       </div>
     </div>
     <div class="twig-view-body">
@@ -189,6 +187,7 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
   const backBtn = container.querySelector<HTMLButtonElement>('.twig-back-btn')!
   const titleInput = container.querySelector<HTMLInputElement>('.twig-title-input')!
   const noteInput = container.querySelector<HTMLTextAreaElement>('.twig-note-input')!
+  const twigShineBtn = container.querySelector<HTMLButtonElement>('.twig-shine-btn')!
   const sproutTitleInput = container.querySelector<HTMLInputElement>('.sprout-title-input')!
   const seasonBtns = container.querySelectorAll<HTMLButtonElement>('.sprout-season-btn')
   const endDateDisplay = container.querySelector<HTMLDivElement>('.sprout-end-date')!
@@ -292,8 +291,6 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
   function renderHistoryCard(s: Sprout): string {
     const hasLeaf = !!s.leafId
     const canGraft = s.state === 'completed' && hasLeaf
-    const canShine = s.state === 'completed'
-    const shone = wasShoneToday(s)
 
     return `
       <div class="sprout-card sprout-history-card ${s.state === 'failed' ? 'is-failed' : 'is-completed'} ${hasLeaf ? 'is-clickable' : ''}" data-id="${s.id}" ${hasLeaf ? `data-leaf-id="${s.leafId}"` : ''}>
@@ -307,10 +304,9 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
           <span class="sprout-card-date">${s.completedAt ? formatDate(new Date(s.completedAt)) : ''}</span>
         </div>
         ${s.reflection ? `<p class="sprout-card-reflection">${s.reflection}</p>` : ''}
-        ${(canShine || canGraft) ? `
+        ${canGraft ? `
           <div class="sprout-card-footer action-btn-group">
-            ${canShine ? `<button type="button" class="action-btn action-btn-passive action-btn-sun sprout-shine-btn" data-sprout-id="${s.id}" ${shone ? 'disabled' : ''}>${shone ? 'n/a' : 'Shine'}</button>` : ''}
-            ${canGraft ? `<button type="button" class="action-btn action-btn-progress action-btn-twig sprout-graft-btn" data-leaf-id="${s.leafId}">Graft</button>` : ''}
+            <button type="button" class="action-btn action-btn-progress action-btn-twig sprout-graft-btn" data-leaf-id="${s.leafId}">Graft</button>
           </div>
         ` : ''}
       </div>
@@ -672,31 +668,6 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
         }
       })
     })
-
-    // Shine buttons - open shine dialog for cultivated sprouts
-    container.querySelectorAll<HTMLButtonElement>('.sprout-shine-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation()
-        const sproutId = btn.dataset.sproutId
-        if (!sproutId) return
-
-        const sprouts = getSprouts()
-        const sprout = sprouts.find(s => s.id === sproutId)
-        if (!sprout) return
-
-        const nodeId = getCurrentNodeId()
-        const twigLabel = currentTwigNode?.dataset.defaultLabel || 'Twig'
-
-        if (callbacks.onShineClick && nodeId) {
-          callbacks.onShineClick({
-            id: sprout.id,
-            title: sprout.title,
-            twigId: nodeId,
-            twigLabel,
-          })
-        }
-      })
-    })
   }
 
   function resetForm(): void {
@@ -785,6 +756,14 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
     callbacks.onClose()
   })
 
+  // Twig-level shine button
+  twigShineBtn.addEventListener('click', () => {
+    const nodeId = getCurrentNodeId()
+    if (!nodeId || !callbacks.onShineClick) return
+    const twigLabel = currentTwigNode?.dataset.defaultLabel || 'Twig'
+    callbacks.onShineClick({ twigId: nodeId, twigLabel })
+  })
+
   // Navigation buttons
   prevBtn.addEventListener('click', () => {
     if (!callbacks.onNavigate) return
@@ -837,6 +816,11 @@ export function buildTwigView(mapPanel: HTMLElement, callbacks: TwigViewCallback
 
     titleInput.value = label
     noteInput.value = data?.note || ''
+
+    // Update twig-level shine button state
+    const shone = wasShoneThisWeek(nodeId)
+    twigShineBtn.textContent = shone ? 'Shone' : 'Shine'
+    twigShineBtn.disabled = shone
 
     resetForm()
     renderSprouts()
